@@ -25,7 +25,9 @@ export default defineConfig({
   site: 'https://s2s-shashank.github.io',
   // GitHub Pages project sites live under /<repo-name>/
   base: '/stem-jobs/',
-  trailingSlash: 'never',
+  // Let pages load with or without the trailing slash (the dev server would
+  // otherwise 404 on /stem-jobs/).
+  trailingSlash: 'ignore',
   build: {
     // Keep the output small and cache-friendly.
     format: 'directory',

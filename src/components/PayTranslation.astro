@@ -1,5 +1,5 @@
 ---
-import { translatePay, formatMoney } from '../lib/data';
+import { translatePay } from '../lib/data';
 
 interface Props {
   annual?: number;
@@ -8,31 +8,33 @@ interface Props {
 
 const { annual, label = 'a year' } = Astro.props;
 const pay = translatePay(annual);
+// Whole dollars everywhere - cents make the boxes look messy.
+const fmt = (n: number) => '$' + Math.round(n).toLocaleString('en-US');
 ---
 
 {
   pay && (
     <div class="pay">
       <p class="pay__lead">
-        <strong>{formatMoney(annual)}</strong> {label} works out to about{' '}
-        <strong>${pay.hourly.toLocaleString('en-US')} an hour</strong>, or{' '}
-        <strong>${pay.weekly.toLocaleString('en-US')} a week</strong> before taxes.
+        <strong>{fmt(annual ?? 0)}</strong> {label} works out to about{' '}
+        <strong>{fmt(pay.hourly)} an hour</strong>, or{' '}
+        <strong>{fmt(pay.weekly)} a week</strong> before taxes.
       </p>
       <div class="pay__grid">
         <div class="pay__cell">
-          <span class="pay__value">${pay.hourly.toLocaleString('en-US')}</span>
+          <span class="pay__value">{fmt(pay.hourly)}</span>
           <span class="pay__label">per hour</span>
         </div>
         <div class="pay__cell">
-          <span class="pay__value">${pay.perDay.toLocaleString('en-US')}</span>
+          <span class="pay__value">{fmt(pay.perDay)}</span>
           <span class="pay__label">per day</span>
         </div>
         <div class="pay__cell">
-          <span class="pay__value">${pay.weekly.toLocaleString('en-US')}</span>
+          <span class="pay__value">{fmt(pay.weekly)}</span>
           <span class="pay__label">per week</span>
         </div>
         <div class="pay__cell">
-          <span class="pay__value">${pay.monthly.toLocaleString('en-US')}</span>
+          <span class="pay__value">{fmt(pay.monthly)}</span>
           <span class="pay__label">per month</span>
         </div>
       </div>
@@ -53,9 +55,10 @@ const pay = translatePay(annual);
     font-size: var(--step-1);
     line-height: 1.45;
   }
+  /* Always 2x2, so the four boxes stay even instead of orphaning one. */
   .pay__grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-2xs);
   }
   .pay__cell {
@@ -64,10 +67,11 @@ const pay = translatePay(annual);
     border-radius: var(--radius-s);
     padding: var(--space-s);
     text-align: center;
+    min-width: 0;
   }
   .pay__value {
     display: block;
-    font-size: var(--step-2);
+    font-size: var(--step-1);
     font-weight: 800;
     letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;

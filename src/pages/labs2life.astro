@@ -1,0 +1,367 @@
+---
+/**
+ * Labs2Life - the labs Students 2 Science runs, and the careers behind them.
+ *
+ * Careers link to the existing career pages (/careers/[soc]). Jobs are
+ * matched to the occupations the site actually tracks; where a lab role has
+ * no exact match, the closest tracked occupation is used.
+ */
+import Base from '../layouts/Base.astro';
+import { withBase } from '../lib/url';
+import { allStateData } from '../lib/data';
+import { CATEGORY_MAP } from '../data/states';
+
+type Career = { soc: string; role: string };
+type Lab = {
+  title: string;
+  icon: string;
+  careers: Career[];
+};
+
+// The jobs this site tracks, with the category colour to label each one.
+const tracked = new Map<string, { title: string; cat: string }>();
+for (const data of allStateData()) {
+  for (const o of data.occupations) {
+    if (!tracked.has(o.soc)) {
+      tracked.set(o.soc, {
+        title: o.title,
+        cat: CATEGORY_MAP[o.category]?.color ?? 'var(--accent)',
+      });
+    }
+  }
+}
+
+const groups: { level: string; blurb: string; labs: Lab[] }[] = [
+  {
+    level: 'Elementary Labs',
+    labs: [
+      {
+        title: 'Adaptations to Environmental Changes',
+        icon: '🦎',
+        careers: [
+          { soc: '19-1013', role: 'Soil and Plant Scientist' },
+          { soc: '19-1023', role: 'Zoologist and Wildlife Biologist' },
+          { soc: '19-1031', role: 'Conservation Scientist' },
+        ],
+      },
+      {
+        title: 'Nature',
+        icon: '🌳',
+        careers: [
+          { soc: '19-1023', role: 'Zoologist and Wildlife Biologist' },
+          { soc: '19-2041', role: 'Environmental Scientist' },
+          { soc: '19-4012', role: 'Agricultural Technician' },
+        ],
+      },
+      {
+        title: 'Dams',
+        icon: '🌊',
+        careers: [
+          { soc: '17-2051', role: 'Civil Engineer' },
+          { soc: '19-4044', role: 'Hydrologic Technician' },
+          { soc: '51-8031', role: 'Water Treatment Plant Operator' },
+          { soc: '17-2081', role: 'Environmental Engineer' },
+        ],
+      },
+      {
+        title: 'Global Warming',
+        icon: '🌍',
+        careers: [
+          { soc: '19-2021', role: 'Atmospheric and Space Scientist' },
+          { soc: '19-2041', role: 'Environmental Scientist' },
+          { soc: '19-2042', role: 'Geoscientist' },
+          { soc: '17-2081', role: 'Environmental Engineer' },
+        ],
+      },
+    ],
+  },
+
+  {
+    level: 'Middle School Labs',
+    labs: [
+      {
+        title: 'Disease Detectives',
+        icon: '🔬',
+        careers: [
+          { soc: '19-1041', role: 'Epidemiologist' },
+          { soc: '29-2010', role: 'Clinical Laboratory Technologist (LabCorp-style labs)' },
+          { soc: '29-2099', role: 'Phlebotomist & Urinalysis Technician' },
+          { soc: '15-2041', role: 'Statistician' },
+          { soc: '19-1042', role: 'NIH Research Scientist' },
+          { soc: '19-4031', role: 'Toxicology Technician' },
+          { soc: '29-2061', role: 'Health Care Assistant (LPN)' },
+        ],
+      },
+      {
+        title: 'Metal Marvels',
+        icon: '⚡',
+        careers: [
+          { soc: '17-2071', role: 'Electrical Engineer' },
+          { soc: '17-2041', role: 'Electroplating Engineer (Chemical Engineer)' },
+          { soc: '19-2031', role: 'Battery Scientist (Chemist)' },
+          { soc: '19-2032', role: 'Materials Scientist' },
+        ],
+      },
+      {
+        title: 'Self-Driving Robot',
+        icon: '🤖',
+        careers: [
+          { soc: '17-3024', role: 'Robotics Engineer (Mechatronics)' },
+          { soc: '17-2199', role: 'Autonomous Systems Engineer' },
+          { soc: '17-2071', role: 'Electrical Engineer' },
+          { soc: '15-1252', role: 'Software Developer' },
+          { soc: '15-2051', role: 'AI / ML Specialist (Data Scientist)' },
+          { soc: '17-2061', role: 'Hardware Designer (Computer Hardware Engineer)' },
+        ],
+      },
+      {
+        title: 'What a Pain',
+        icon: '💊',
+        careers: [
+          { soc: '19-2031', role: 'Chemist' },
+          { soc: '19-4031', role: 'Lab Technician (Chemical)' },
+          { soc: '29-2052', role: 'Pharmacy Technician' },
+          { soc: '29-1051', role: 'Pharmacist' },
+        ],
+      },
+      {
+        title: 'Bridges',
+        icon: '🌉',
+        careers: [
+          { soc: '17-2051', role: 'Civil Engineer' },
+          { soc: '17-2141', role: 'Mechanical Engineer' },
+          { soc: '17-3022', role: 'Structural Engineering Technician (Civil)' },
+          { soc: '15-1252', role: 'Transportation Modeller (Software Developer)' },
+        ],
+      },
+      {
+        title: 'Green Machine',
+        icon: '🌱',
+        careers: [
+          { soc: '19-2041', role: 'Environmental Scientist' },
+          { soc: '19-4021', role: 'Biotechnologist (Biological Technician)' },
+          { soc: '17-3025', role: 'Environmental Engineering Technician' },
+        ],
+      },
+      {
+        title: "You Can't Be Cereus",
+        icon: '🧫',
+        careers: [
+          { soc: '19-1021', role: 'Biotechnologist (Biochemist)' },
+          { soc: '15-2051', role: 'Bioinformatics (Data Scientist)' },
+          { soc: '19-1022', role: 'Molecular Biologist (Microbiologist)' },
+        ],
+      },
+    ],
+  },
+  {
+    level: 'High School Labs',
+    labs: [
+      {
+        title: 'Allied Health',
+        icon: '🚑',
+        careers: [
+          { soc: '29-2042', role: 'EMT' },
+          { soc: '29-2043', role: 'Paramedic' },
+          { soc: '29-2010', role: 'Lab Technician (Clinical Laboratory Technologist)' },
+          { soc: '19-4092', role: 'Toxicology Technician (Forensic Science)' },
+        ],
+      },
+      {
+        title: 'Pharma Day',
+        icon: '⚗️',
+        careers: [
+          { soc: '19-2031', role: 'Chemist' },
+          { soc: '19-4031', role: 'HPLC / GC Analyst (Chemical Technician)' },
+          { soc: '29-2052', role: 'Pharmacy Technician' },
+          { soc: '29-1051', role: 'Pharmacist' },
+          { soc: '19-1042', role: 'Medical Scientist (Drug Research)' },
+          { soc: '51-8091', role: 'Chemical Plant Operator (Pharma Manufacturing)' },
+        ],
+      },
+    ],
+  },];
+
+// Only link careers this site tracks, so every link always resolves.
+interface RenderLab extends Omit<Lab, 'careers'> {
+  careers: Array<{
+    soc: string;
+    url: string;
+    exists: boolean;
+    title: string;
+    cat: string;
+    role: string;
+  }>;
+}
+const renderGroups = groups.map((g) => ({
+  ...g,
+  labs: g.labs.map((lab) => {
+    const careers = lab.careers.map((c) => {
+      const job = tracked.get(c.soc);
+      return {
+        ...c,
+        title: job?.title ?? c.role,
+        cat: job?.cat ?? 'var(--accent)',
+        url: withBase(`/careers/${c.soc}`),
+        exists: Boolean(job),
+      };
+    });
+    return { ...lab, careers };
+  }),
+}));
+---
+
+<Base
+  title="Labs2Life"
+  description="The labs Students 2 Science covers in elementary, middle and high school - and the real careers each experiment connects to."
+>
+  <section class="hero">
+    <div class="wrap">
+      <span class="hero__tag">
+        <span aria-hidden="true">●</span> Labs2Life
+      </span>
+      <h1>From a lab experiment to a real career</h1>
+      <p class="lede">
+        Every experiment you do in an S2S lab is the daily work of somebody
+        somewhere. Pick a lab, see the careers behind it, and click through to
+        the real numbers - pay, openings, growth - for each job.
+      </p>
+      <div class="hero__actions">
+        <a class="btn btn--primary" href={withBase('/careers')}>Browse all careers</a>
+        <a class="btn btn--ghost" href={withBase('/about')}>About Students 2 Science</a>
+      </div>
+    </div>
+  </section>
+
+  {
+    renderGroups.map((group) => (
+      <section class="section">
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">{group.level}</span>
+            <h2>{group.labs.length} labs</h2>
+            <p class="lede">{group.blurb}</p>
+          </div>
+          <div class="grid grid--2 lab-grid">
+            {group.labs.map((lab) => (
+              <article class="card lab-card">
+                <div class="lab-card__head">
+                  <span class="lab-card__icon" aria-hidden="true">
+                    {lab.icon}
+                  </span>
+                  <h3 class="card__title">{lab.title}</h3>
+                </div>
+                {lab.careers.length > 0 && (
+                  <p class="lab-card__kicker">Careers in this lab</p>
+                )}
+                <ul class="lab-card__careers">
+                  {lab.careers.map((c) => (
+                    <li>
+                      {c.exists ? (
+                        <a href={c.url} style={`--cat:${c.cat}`}>
+                          <span aria-hidden="true" class="lab-card__dot" />
+                          {c.role}
+                          <span class="lab-card__title">{c.title}</span>
+                        </a>
+                      ) : (
+                        <span class="lab-card__soon" style="--cat:var(--ink-300)">
+                          <span aria-hidden="true" class="lab-card__dot" />
+                          {c.role}
+                          <span class="lab-card__title">Profile coming soon</span>
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+    ))
+  }
+
+  <section class="section section--alt">
+    <div class="wrap wrap--narrow">
+      <div class="section-head">
+        <span class="eyebrow">Not sure which fits you?</span>
+        <h2>Get matched instead</h2>
+        <p class="lede">
+          The Career Exploration quiz asks a few questions about what you like
+          doing, then shows the jobs that match - with real salaries and job
+          openings.
+        </p>
+        <button type="button" class="btn btn--sun" data-open-finder>
+          Career Exploration
+        </button>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .lab-grid {
+    align-items: start;
+  }
+  .lab-card__head {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .lab-card__icon {
+    font-size: 1.6rem;
+    line-height: 1;
+  }
+  .lab-card__kicker {
+    font-size: var(--step--1);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-500);
+    margin: var(--space-s) 0 0.3rem;
+  }
+  .lab-card__careers {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.35rem;
+  }
+  .lab-card__careers a,
+  .lab-card__soon {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 0.5rem;
+    padding: 0.45rem 0.7rem 0.45rem 0.55rem;
+    border: 1px solid color-mix(in srgb, var(--cat) 30%, var(--paper-sunk));
+    background: color-mix(in srgb, var(--cat) 8%, var(--paper));
+    border-radius: var(--radius-m);
+    font-weight: 600;
+    color: var(--ink-700);
+    text-decoration: none;
+  }
+  .lab-card__careers a:hover,
+  .lab-card__careers a:focus-visible {
+    background: color-mix(in srgb, var(--cat) 15%, var(--paper));
+    border-color: var(--cat);
+    color: var(--ink-900);
+  }
+  .lab-card__soon {
+    color: var(--ink-500);
+  }
+  .lab-card__dot {
+    align-self: center;
+    flex: none;
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: var(--cat);
+    margin-right: 0.1rem;
+  }
+  .lab-card__title {
+    font-size: var(--step--1);
+    font-weight: 500;
+    color: var(--ink-500);
+  }
+</style>

@@ -1,0 +1,124 @@
+---
+import Base from '../layouts/Base.astro';
+import { withBase } from '../lib/url';
+---
+
+<Base
+  title="CAP Program"
+  description="The Career Advancement Program (CAP) gives high school students education, job training and career exploration - internships, mentoring and career-readiness training."
+>
+  <section class="hero">
+    <div class="wrap">
+      <span class="hero__tag">
+        <span aria-hidden="true">●</span> CAP Program
+      </span>
+      <h1>Career Advancement Program (CAP)</h1>
+      <p class="lede">
+        Education, job training and career exploration for high school
+        students - so you can find your direction before the real world
+        starts asking for one.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap wrap--narrow">
+      <h2>What CAP is</h2>
+      <p>
+        CAP supports students in grades 10-12 from our partner schools and
+        districts with guided exploration of what comes after high school and
+        hands-on STEM career development.
+      </p>
+      <p class="muted">
+        Through partnerships with schools, corporations and community
+        stakeholders, CAP connects students with industry experts, real
+        experiences and individualized coaching - while engaging professionals
+        in developing the future workforce. The focus is career readiness,
+        professional development and STEM identity-building: the skills,
+        exposure and connections needed to pursue rewarding educational and
+        career pathways in STEM.
+      </p>
+
+      <h2>Signature programs</h2>
+      <div class="cap-grid">
+        <article class="card card--flat">
+          <h3 class="card__title">ISAAC Internship</h3>
+          <p class="muted">
+            Project-based internships for high school (16+) and college
+            students, working alongside S2S staff and industry professionals.
+            Interns get career-readiness training, resume and interview
+            coaching, and direct exposure to STEM professionals and hiring
+            managers.
+          </p>
+        </article>
+        <article class="card card--flat">
+          <h3 class="card__title">STEM Pathways Mentoring (STEMPath)</h3>
+          <p class="muted">
+            Students in grades 11-12 take part in one-on-one, 2:1 and group
+            mentoring with relatable STEM professionals. These connections
+            help you explore career pathways, expand your professional
+            network, and get ready for what comes next.
+          </p>
+        </article>
+      </div>
+
+      <h2>More inside CAP</h2>
+      <ul class="cap-list">
+        <li>
+          <strong>Career exploration</strong> - workplace tours, employee
+          meet-and-greets, career panels and STEM professional engagement.
+        </li>
+        <li>
+          <strong>Career-readiness training</strong> - resume development,
+          mock interviews, employment preparation and workplace success
+          strategies.
+        </li>
+        <li>
+          <strong>Professional and soft skills</strong> - communication,
+          teamwork, leadership, professionalism and workplace effectiveness.
+        </li>
+        <li>
+          <strong>Industry-aligned learning</strong> - certifications,
+          specialized training, workforce-readiness resources and
+          career-development pathways.
+        </li>
+      </ul>
+
+      <h2>Corporations</h2>
+      <p>
+        If your company wants to be part of CAP,
+        <a href="mailto:CAP@students2science.org">email CAP@students2science.org</a>.
+      </p>
+
+      <p class="source-note">
+        Testing out careers on paper is one thing - meeting the people who do
+        them is another. Try <a href={withBase('/labs2life')}>Labs2Life</a> to
+        see how lab experiments connect to real jobs, or
+        <a href={withBase('/careers')}>browse every career</a> on this site.
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .cap-grid {
+    display: grid;
+    gap: var(--space-s);
+    margin-block: var(--space-m);
+  }
+  @media (min-width: 46rem) {
+    .cap-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  .cap-list {
+    margin: var(--space-s) 0;
+    display: grid;
+    gap: var(--space-xs);
+  }
+  .cap-list li {
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--paper-sunk, #e5e7eb);
+    border-radius: var(--radius-m);
+  }
+</style>

@@ -1,258 +1,162 @@
 ---
 /**
- * The Career Finder popup.
+ * "How to browse this site" guide.
  *
- * A kid lands on any page of the site, gets asked a short, silly set of
- * questions, and at the end sees the STEM jobs that match what they said
- * they like - with the salary, the job growth and the number of people
- * doing each one.
- *
- * Everything here is static: the questions, the occupation data and the
- * fun facts are all written into one JSON file at build time, and the
- * matching happens in the browser. There is no server and no tracking.
+ * One simple panel that shows the structure of the website with links to
+ * every section. Opens itself once on the home page, and any time the "?"
+ * button in the header is clicked.
  */
+import { withBase } from '../lib/url';
+
 interface Props {
   /** Open by itself on load. Only the home page does this, and only once. */
   autoOpen?: boolean;
 }
 
 const { autoOpen = false } = Astro.props;
+
+const sections = [
+  {
+    title: 'States',
+    blurb: 'Job counts, pay and openings for each state.',
+    links: [
+      { label: 'New Jersey', url: '/nj' },
+      { label: 'New York', url: '/ny' },
+      { label: 'Pennsylvania', url: '/pa' },
+      { label: 'Compare all three', url: '/compare' },
+    ],
+  },
+  {
+    title: 'Labs2Life',
+    blurb: 'S2S labs and the careers behind each experiment.',
+    links: [{ label: 'From lab to career', url: '/labs2life' }],
+  },
+  {
+    title: 'Careers',
+    blurb: 'Every STEM job: what it pays, openings, what to study.',
+    links: [
+      { label: 'Browse all careers', url: '/careers' },
+      { label: 'Glossary of terms', url: '/glossary' },
+    ],
+  },
+  {
+    title: 'Tools',
+    blurb: 'Play with the numbers and see where they come from.',
+    links: [
+      { label: 'Quiz: guess the salary', url: '/quiz' },
+      { label: 'Sources & data notes', url: '/sources' },
+    ],
+  },
+  {
+    title: 'About S2S',
+    blurb: 'Who we are and how we help students reach STEM careers.',
+    links: [
+      { label: 'About Students 2 Science', url: '/about' },
+      { label: 'Career Advancement Program', url: '/cap-program' },
+    ],
+  },
+];
 ---
 
-<!-- The popup lives outside <main> so it is never inside the page flow. -->
 <div
-  class="finder"
+  class="finder guide"
   id="finder"
   hidden
   data-state="closed"
   data-auto-open={autoOpen ? 'true' : 'false'}
   role="dialog"
   aria-modal="true"
-  aria-label="Career Finder"
+  aria-label="How to Browse This Site"
 >
   <div class="finder__scrim" data-close></div>
 
   <div class="finder__panel" role="document">
     <header class="finder__head">
       <div class="finder__brand">
-        <span class="finder__spark" aria-hidden="true">⚗️</span>
-        <span>Career Finder</span>
+        <span class="finder__spark" aria-hidden="true">🧭</span>
+        <span>How to Browse This Site</span>
       </div>
       <button
         type="button"
         class="finder__x"
         data-close
-        aria-label="Close the career finder"
+        aria-label="Close the guide"
       >
         ✕
       </button>
     </header>
 
-    <!-- Progress dots: one per question. -->
-    <div class="finder__dots" id="finder-dots" aria-hidden="true"></div>
+    <div class="finder__viewport guide__body">
+      <p class="finder__lede">
+        Here's everything on the site, in one place.
+      </p>
 
-    <div class="finder__viewport" id="finder-viewport">
-      <!-- Welcome slide -->
-      <section class="finder__slide finder__slide--intro" data-slide="intro">
-        <p class="finder__kicker">Welcome, explorer</p>
-        <h2 class="finder__title">
-          What kind of STEM job would you actually like?
-        </h2>
-        <p class="finder__lede">
-          Answer <span id="finder-count">a few</span> quick questions - no
-          wrong answers, we promise. At the end we will show you the real
-          jobs that match your answers, what they pay, and whether they are
-          growing.
-        </p>
-        <p class="finder__lede finder__loading" id="finder-loading" hidden>
-          Loading the questions…
-        </p>
-        <ul class="finder__promise" id="finder-promise">
-          <li><span aria-hidden="true">💰</span> Real salaries</li>
-          <li><span aria-hidden="true">📈</span> Real job growth</li>
-          <li><span aria-hidden="true">🏠</span> Jobs near you</li>
-        </ul>
-        <button type="button" class="btn btn--primary finder__cta" data-start>
-          Let's do it! →
-        </button>
-        <button type="button" class="finder__skip" data-close>
-          Maybe later
-        </button>
-      </section>
-
-      {/* The question slides are rendered by the script. */}
-      <section
-        class="finder__slide"
-        data-slide="questions"
-        aria-live="polite"
-      ></section>
-
-      {/* The results slide. */}
-      <section class="finder__slide finder__slide--results" data-slide="results">
-        <div id="finder-results"></div>
-      </section>
+      {
+        sections.map((s) => (
+          <section class="guide__section">
+            <h2 class="guide__title">{s.title}</h2>
+            <p class="guide__blurb">{s.blurb}</p>
+            <p class="guide__links">
+              {s.links.map((l, i) => (
+                <>
+                  {i > 0 && <span aria-hidden="true" class="guide__sep">·</span>}
+                  <a class="guide__link" href={withBase(l.url)}>
+                    {l.label}
+                  </a>
+                </>
+              ))}
+            </p>
+          </section>
+        ))
+      }
     </div>
-
-    <footer class="finder__foot" id="finder-foot" hidden>
-      <button type="button" class="finder__nav" id="finder-back">← Back</button>
-      <div class="finder__pips" id="finder-pips" aria-hidden="true"></div>
-      <button type="button" class="btn btn--primary finder__next" id="finder-next">
-        Next →
-      </button>
-    </footer>
   </div>
 </div>
 
 <script>
-  import {
-    setQuestions,
-    scoreMatches,
-    loadPayload,
-    matchCardHtml,
-    type FinderQuestion,
-    type FinderAnswers,
-    type FinderPayload,
-  } from '../lib/finder-client';
-
   const root = document.getElementById('finder');
-  const viewport = document.getElementById('finder-viewport');
-  const dotsEl = document.getElementById('finder-dots');
-  const pipsEl = document.getElementById('finder-pips');
-  const countEl = document.getElementById('finder-count');
-  const loadingEl = document.getElementById('finder-loading');
-  const promiseEl = document.getElementById('finder-promise');
-  const ctaEl = root?.querySelector<HTMLElement>('.finder__cta');
-  const backBtn = document.getElementById('finder-back') as HTMLButtonElement;
-  const nextBtn = document.getElementById('finder-next') as HTMLButtonElement;
-  const footEl = document.getElementById('finder-foot');
-  const questionSlide = root?.querySelector<HTMLElement>('[data-slide="questions"]');
-  const resultsSlide = root?.querySelector<HTMLElement>('[data-slide="results"]');
-  const resultsEl = document.getElementById('finder-results');
+  let lastFocused: HTMLElement | null = null;
 
-  if (root && viewport && questionSlide && resultsEl) {
-    // Nothing is stored anywhere: the answers live in this object until the
-    // page is refreshed, then the quiz starts over from scratch.
-    const answers: FinderAnswers = {};
-
-    // The questions and the job data arrive together, in one file.
-    let questions: FinderQuestion[] = [];
-    let payload: FinderPayload | null = null;
-
-    // Slide order: intro, one per question, results.
-    let slide = 0;
-    const total = () => questions.length + 2;
-
-    /** The "did you know" panel under the chosen option. */
-    let factEl: HTMLElement | null = null;
-
-    /* ---------------- open / close ---------------- */
-
-    let lastFocused: HTMLElement | null = null;
-
-    /** True when every question has an answer saved. */
-    function isComplete(): boolean {
-      return (
-        questions.length > 0 &&
-        questions.every((q) => (answers[q.id]?.length ?? 0) > 0)
-      );
-    }
-
-    async function load() {
-      if (payload) return payload;
-      payload = await loadPayload();
-      questions = payload.questions;
-      setQuestions(questions);
-      if (countEl) countEl.textContent = String(questions.length);
-      return payload;
-    }
-
-    async function open(startAtResults = false) {
-      lastFocused = document.activeElement as HTMLElement;
-      root!.hidden = false;
-      root!.dataset.state = 'open';
-      document.body.classList.add('finder-open');
-
-      if (!questions.length) {
-        const intro = root!.querySelector<HTMLElement>('[data-slide="intro"]')!;
-        showSlide(intro);
-        footEl!.hidden = true;
-        loadingEl?.removeAttribute('hidden');
-        promiseEl?.setAttribute('hidden', '');
-        ctaEl?.setAttribute('hidden', '');
-        try {
-          await load();
-        } catch {
-          if (loadingEl) {
-            loadingEl.textContent =
-              'We could not load the questions just now. Please check your connection and try again.';
-          }
-          return;
-        }
-        loadingEl?.setAttribute('hidden', '');
-        promiseEl?.removeAttribute('hidden');
-        ctaEl?.removeAttribute('hidden');
-      }
-
-      slide = startAtResults && isComplete() ? total() - 1 : 0;
-      render();
-      // Move focus into the dialog so screen readers announce it.
-      requestAnimationFrame(() => {
-        const first = root!.querySelector<HTMLElement>(
-          '.finder__slide.is-active button',
-        );
-        first?.focus();
-      });
-    }
-
-    function close() {
-      root!.hidden = true;
-      root!.dataset.state = 'closed';
-      document.body.classList.remove('finder-open');
-      lastFocused?.focus?.();
-    }
-
-    root.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement;
-      if (target.closest('[data-close]')) close();
-      if (target.closest('[data-start]')) {
-        // The questions may still be downloading.
-        if (!questions.length) return;
-        slide = 1;
-        render();
-      }
+  function open() {
+    if (!root) return;
+    lastFocused = document.activeElement as HTMLElement;
+    root.hidden = false;
+    root.dataset.state = 'open';
+    document.body.classList.add('finder-open');
+    requestAnimationFrame(() => {
+      root.querySelector<HTMLElement>('.finder__x')?.focus();
     });
+  }
 
-    // Escape closes, arrow keys move between slides, Tab stays inside.
-    document.addEventListener('keydown', (e) => {
-      if (root!.hidden) return;
-      if (e.key === 'Escape') {
-        close();
-        return;
-      }
-      if (e.key === 'ArrowRight' && slide < total() - 1) {
-        slide += 1;
-        render();
-      }
-      if (e.key === 'ArrowLeft' && slide > 0) {
-        slide -= 1;
-        render();
-      }
-      if (e.key === 'Tab') trapFocus(e);
-    });
+  function close() {
+    if (!root) return;
+    root.hidden = true;
+    root.dataset.state = 'closed';
+    document.body.classList.remove('finder-open');
+    lastFocused?.focus?.();
+  }
 
-    /** Keep Tab inside the dialog while it is open. */
-    function trapFocus(e: KeyboardEvent) {
+  root?.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('[data-close]')) close();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (!root || root.hidden) return;
+    if (e.key === 'Escape') {
+      close();
+      return;
+    }
+    if (e.key === 'Tab') {
+      // Keep Tab inside the dialog while it is open.
       const focusable = Array.from(
-        root!.querySelectorAll<HTMLElement>(
-          'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])',
+        root.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href]',
         ),
       ).filter((el) => el.offsetParent !== null);
       if (!focusable.length) return;
-
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
       const active = document.activeElement as HTMLElement;
-
       if (e.shiftKey && active === first) {
         e.preventDefault();
         last.focus();
@@ -261,322 +165,58 @@ const { autoOpen = false } = Astro.props;
         first.focus();
       }
     }
+  });
 
-    /* ---------------- rendering ---------------- */
+  // The "?" button in the header opens the guide from any page.
+  document.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('[data-open-finder]')) open();
+  });
 
-    function currentQuestion() {
-      return questions[slide - 1];
-    }
-
-    function renderDots() {
-      if (!dotsEl) return;
-      // No dots on the welcome slide or the results slide.
-      dotsEl.hidden = slide === 0 || slide === total() - 1;
-      dotsEl.innerHTML = '';
-      for (let i = 0; i < questions.length; i++) {
-        const dot = document.createElement('span');
-        dot.className = 'finder__dot';
-        if (i + 1 < slide) dot.classList.add('is-done');
-        if (i + 1 === slide) dot.classList.add('is-current');
-        dotsEl.appendChild(dot);
-      }
-    }
-
-    function renderPips() {
-      if (!pipsEl) return;
-      pipsEl.innerHTML = '';
-      const q = currentQuestion();
-      if (!q) return;
-      for (let i = 0; i < questions.length; i++) {
-        const pip = document.createElement('span');
-        pip.className = 'finder__pip';
-        if (i + 1 < slide) pip.classList.add('is-done');
-        if (i + 1 === slide) pip.classList.add('is-current');
-        pipsEl.appendChild(pip);
-      }
-    }
-
-    function showSlide(el: HTMLElement) {
-      for (const s of Array.from(
-        viewport.querySelectorAll<HTMLElement>('.finder__slide'),
-      )) {
-        s.classList.toggle('is-active', s === el);
-      }
-    }
-
-    function render() {
-      renderDots();
-      renderPips();
-
-      const intro = root!.querySelector<HTMLElement>('[data-slide="intro"]');
-      const isIntro = slide === 0;
-      const isResults = slide === total() - 1;
-
-      if (isIntro) {
-        showSlide(intro!);
-        footEl!.hidden = true;
-        return;
-      }
-
-      if (isResults) {
-        showSlide(resultsSlide!);
-        footEl!.hidden = true;
-        showResults();
-        return;
-      }
-
-      showSlide(questionSlide);
-      footEl!.hidden = false;
-      renderQuestion();
-      updateNav();
-      // A long fun fact can leave the viewport scrolled - start each
-      // question at the top.
-      viewport.scrollTop = 0;
-    }
-
-    function renderQuestion() {
-      const q = currentQuestion();
-      if (!q) return;
-
-      const picked = answers[q.id] ?? [];
-      questionSlide!.innerHTML = '';
-      factEl = null;
-
-      const kicker = document.createElement('p');
-      kicker.className = 'finder__kicker';
-      kicker.textContent = `Question ${slide} of ${questions.length}`;
-      questionSlide!.appendChild(kicker);
-
-      const title = document.createElement('h2');
-      title.className = 'finder__title';
-      title.textContent = q.title;
-      questionSlide!.appendChild(title);
-
-      if (q.kicker) {
-        const lede = document.createElement('p');
-        lede.className = 'finder__lede finder__lede--sm';
-        lede.textContent = q.kicker;
-        questionSlide!.appendChild(lede);
-      }
-
-      if (q.multi) {
-        const hint = document.createElement('p');
-        hint.className = 'finder__hint';
-        hint.textContent = 'Pick as many as you like — then press Next.';
-        questionSlide!.appendChild(hint);
-      }
-
-      const list = document.createElement('div');
-      list.className = 'finder__options';
-
-      for (const option of q.options) {
-        const on = picked.includes(option.id);
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'finder__option';
-        if (on) btn.classList.add('is-picked');
-        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-
-        const emoji = document.createElement('span');
-        emoji.className = 'finder__emoji';
-        emoji.setAttribute('aria-hidden', 'true');
-        emoji.textContent = option.emoji;
-
-        const label = document.createElement('span');
-        label.className = 'finder__option-label';
-        label.textContent = option.label;
-
-        const tick = document.createElement('span');
-        tick.className = 'finder__tick';
-        tick.setAttribute('aria-hidden', 'true');
-        tick.textContent = '✓';
-
-        btn.append(emoji, label, tick);
-        btn.addEventListener('click', () => pick(q, option, btn));
-        list.appendChild(btn);
-      }
-
-      questionSlide!.appendChild(list);
-    }
-
-    function pick(
-      q: (typeof questions)[number],
-      option: (typeof questions)[number]['options'][number],
-      btn: HTMLButtonElement,
-    ) {
-      const list = answers[q.id] ?? [];
-
-      if (q.multi) {
-        if (list.includes(option.id)) {
-          answers[q.id] = list.filter((id) => id !== option.id);
-          btn.classList.remove('is-picked');
-          btn.setAttribute('aria-pressed', 'false');
-        } else {
-          answers[q.id] = [...list, option.id];
-          btn.classList.add('is-picked');
-          btn.setAttribute('aria-pressed', 'true');
-        }
-        updateNav();
-        return;
-      }
-
-      // One answer only. Tapping the chosen option again clears it, so a
-      // student can change their mind.
-      if (list.includes(option.id)) {
-        answers[q.id] = [];
-        btn.classList.remove('is-picked');
-        btn.setAttribute('aria-pressed', 'false');
-        showFact(null);
-        updateNav();
-        return;
-      }
-
-      answers[q.id] = [option.id];
-      for (const other of questionSlide!.querySelectorAll<HTMLElement>(
-        '.finder__option',
-      )) {
-        other.classList.remove('is-picked');
-        other.setAttribute('aria-pressed', 'false');
-      }
-      btn.classList.add('is-picked');
-      btn.setAttribute('aria-pressed', 'true');
-
-      showFact(option);
-      updateNav();
-    }
-
-    /** The little "did you know" panel under the chosen option. */
-    function showFact(option: { fun?: { text: string } } | null) {
-      factEl?.remove();
-      factEl = null;
-      if (!option?.fun?.text) return;
-
-      const pop = document.createElement('p');
-      pop.className = 'finder__fact';
-
-      const bulb = document.createElement('span');
-      bulb.setAttribute('aria-hidden', 'true');
-      bulb.textContent = '💡';
-
-      pop.append(bulb, ` ${option.fun.text}`);
-      questionSlide!.appendChild(pop);
-      factEl = pop;
-      requestAnimationFrame(() => {
-        pop.classList.add('is-in');
-        // Make sure the student sees it, even on a small screen.
-        pop.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-      });
-    }
-
-    function updateNav() {
-      const q = currentQuestion();
-      const picked = q ? answers[q.id]?.length ?? 0 : 0;
-
-      backBtn.disabled = slide <= 1;
-      nextBtn.textContent = slide === total() - 2 ? 'Show my jobs →' : 'Next →';
-      nextBtn.disabled = picked === 0;
-    }
-
-    backBtn.addEventListener('click', () => {
-      if (slide > 1) {
-        slide -= 1;
-        render();
-      }
-    });
-
-    nextBtn.addEventListener('click', () => {
-      const q = currentQuestion();
-      if (!q || !(answers[q.id]?.length ?? 0)) return;
-      slide += 1;
-      render();
-    });
-
-    /* ---------------- results ---------------- */
-
-    async function showResults() {
-      const state = answers.state?.[0] ?? 'other';
-
-      let data = payload;
-      if (!data) {
-        resultsEl.innerHTML =
-          '<p class="finder__lede">Looking up the real numbers…</p>';
-        try {
-          data = await load();
-        } catch {
-          resultsEl.innerHTML =
-            '<p class="finder__lede">We could not load the job data just now. Please try again in a moment.</p>';
-          return;
-        }
-      }
-
-      const matches = scoreMatches(data, answers, state, 9);
-
-      const heading = `<p class="finder__kicker">Here are your jobs</p>`;
-      const intro = `<h2 class="finder__title">These STEM jobs match what you said</h2>`;
-
-      const how = `<p class="finder__lede finder__lede--sm">We matched your answers against ${data.occupations.length} real STEM occupations. The top ${matches.length} are below — tap any job to see the full page.</p>`;
-
-      const cards = matches.map((m) => matchCardHtml(m, state)).join('');
-
-      const closeNote = `<p class="finder__note">Your answers are not saved anywhere. Refresh the page to start a fresh run - we do not track you and nothing is sent to us.</p>`;
-
-      const actions = `<div class="finder__actions">
-        <button type="button" class="btn btn--outline" data-restart>Try different answers</button>
-        <button type="button" class="btn btn--primary" data-close>Done</button>
-      </div>`;
-
-      resultsEl.innerHTML = heading + intro + how + `<div class="finder__cards">${cards}</div>` + closeNote + actions;
-
-      resultsEl.querySelector('[data-restart]')?.addEventListener('click', () => {
-        for (const key of Object.keys(answers)) delete answers[key];
-        slide = 1;
-        render();
-      });
-      resultsEl.querySelector('[data-close]')?.addEventListener('click', close);
-
-      // Let the home page show the same results below the fold.
-      document.dispatchEvent(
-        new CustomEvent('stemjobs:finder-results', {
-          detail: { matches, state },
-        }),
-      );
-    }
-
-    /* ---------------- open it automatically ---------------- */
-
-    // The popup opens by itself once, on the home page, the first time the
-    // student visits the site. After that they open it from the nav button
-    // whenever they want.
-    const SEEN_KEY = 'stemjobs:finder-seen';
-
-    function seenBefore(): boolean {
-      try {
-        return localStorage.getItem(SEEN_KEY) === '1';
-      } catch {
-        return false; // private mode: show it, we cannot remember anyway
-      }
-    }
-
-    function rememberSeen() {
-      try {
+  // Open itself once, on the home page only, per browser.
+  if (root?.dataset.autoOpen === 'true') {
+    const SEEN_KEY = 'stempathways:guide-seen';
+    try {
+      if (!localStorage.getItem(SEEN_KEY)) {
         localStorage.setItem(SEEN_KEY, '1');
-      } catch {
-        // Nothing we can do; the popup will just open again next time.
+        open();
       }
+    } catch {
+      // Private mode - just open it.
+      open();
     }
-
-    if (root.dataset.autoOpen === 'true' && !seenBefore()) {
-      rememberSeen();
-      setTimeout(() => open(), 700);
-    }
-
-    // Let the nav button reopen the finder at any time.
-    document.addEventListener('click', (e) => {
-      const t = e.target as HTMLElement;
-      if (t.closest('[data-open-finder]')) {
-        e.preventDefault();
-        open(true);
-      }
-    });
   }
 </script>
+
+<style>
+  .guide__body {
+    padding-block: 0 var(--space-s);
+  }
+  .guide__body .finder__lede {
+    margin-bottom: var(--space-2xs);
+  }
+  .guide__section {
+    border-top: 1px solid var(--paper-sunk);
+    padding-top: 0.55rem;
+    margin-top: 0.55rem;
+  }
+  .guide__title {
+    font-size: var(--step-0);
+    margin: 0 0 0.15rem;
+  }
+  .guide__blurb {
+    margin: 0 0 0.3rem;
+    color: var(--ink-500);
+    font-size: var(--step--1);
+  }
+  .guide__links {
+    margin: 0;
+  }
+  .guide__link {
+    font-weight: 600;
+    font-size: var(--step--1);
+  }
+  .guide__sep {
+    margin-inline: 0.45rem;
+    color: var(--ink-300);
+  }
+</style>

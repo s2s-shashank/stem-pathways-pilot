@@ -7,15 +7,15 @@ import '../styles/global.css';
 interface Props {
   title: string;
   description: string;
-  /** Adds " | STEM Jobs" to the title automatically. */
+  /** Adds " | STEM Pathways" to the title automatically. */
   raw?: boolean;
 }
 
 const { title, description, raw = false } = Astro.props;
-const fullTitle = raw ? title : `${title} | STEM Jobs`;
+const fullTitle = raw ? title : `${title} | STEM Pathways`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const updated = formatDate(lastUpdated());
-// The finder popup opens itself on the home page only.
+// The how-to-browse popup opens itself on the home page only.
 const homePath = withBase('/');
 const isHome =
   Astro.url.pathname === homePath || Astro.url.pathname === homePath.replace(/\/$/, '');
@@ -48,8 +48,7 @@ const isHome =
 
     <header class="site-header">
       <div class="wrap">
-        <a class="brand" href={withBase("/")}>
-          <img
+        <a class="brand" href={withBase("/")}>          <img
             class="brand__mark"
             src={withBase("/s2s-logo.png")}
             alt=""
@@ -57,19 +56,44 @@ const isHome =
             height="1233"
             decoding="async"
           />
-          <span>STEM Jobs</span>
+          <span>STEM Pathways</span>
         </a>
         <nav class="nav" aria-label="Main">
-          <a href={withBase("/nj")}>New Jersey</a>
-          <a href={withBase("/ny")}>New York</a>
-          <a href={withBase("/pa")}>Pennsylvania</a>
-          <a href={withBase("/compare")}>Compare</a>
-          <a href={withBase("/quiz")}>Quiz</a>
-          <button type="button" class="nav__finder btn--sun" data-open-finder>
-            Find my career
+          <details class="nav__drop">
+            <summary class="nav__label">States</summary>
+            <div class="nav__menu">
+              <a href={withBase("/nj")}>New Jersey</a>
+              <a href={withBase("/ny")}>New York</a>
+              <a href={withBase("/pa")}>Pennsylvania</a>
+              <a href={withBase("/compare")}>Compare all three</a>
+            </div>
+          </details>
+          <details class="nav__drop">
+            <summary class="nav__label">About S2S</summary>
+            <div class="nav__menu">
+              <a href={withBase("/about")}>About Us</a>
+              <a href={withBase("/cap-program")}>CAP Program</a>
+            </div>
+          </details>
+          <a href={withBase("/labs2life")}>Labs2Life</a>
+          <details class="nav__drop">
+            <summary class="nav__label">More</summary>
+            <div class="nav__menu">
+              <a href={withBase("/quiz")}>Quiz</a>
+              <a href={withBase("/glossary")}>Glossary</a>
+              <a href={withBase("/sources")}>Sources</a>
+              <a href={withBase("/careers")}>Browse careers</a>
+            </div>
+          </details>
+          <button
+            type="button"
+            class="nav__help"
+            data-open-finder
+            aria-label="How to browse this site"
+            title="How to browse this site"
+          >
+            ?
           </button>
-          <a href={withBase("/glossary")}>Glossary</a>
-          <a href={withBase("/sources")}>Sources</a>
         </nav>
       </div>
     </header>
@@ -82,12 +106,20 @@ const isHome =
       <div class="wrap">
         <div class="footer-grid">
           <div>
-            <h2>STEM Jobs</h2>
+            <h2>STEM Pathways</h2>
             <p>
               Real numbers about science, technology, engineering and math careers
               in New Jersey, New York and Pennsylvania — built for students who
               are figuring out what to do next.
             </p>
+          </div>
+          <div>
+            <h2>Explore</h2>
+            <ul>
+              <li><a href={withBase("/labs2life")}>Labs2Life — labs to careers</a></li>
+              <li><a href={withBase("/about")}>About Students 2 Science</a></li>
+              <li><a href={withBase("/cap-program")}>Career Advancement Program (CAP)</a></li>
+            </ul>
           </div>
           <div>
             <h2>States</h2>
@@ -101,10 +133,12 @@ const isHome =
           <div>
             <h2>Learn</h2>
             <ul>
+              <li><a href={withBase("/labs2life")}>Labs2Life — from lab to career</a></li>
               <li><a href={withBase("/quiz")}>Guess the salary</a></li>
               <li><a href={withBase("/careers")}>Browse careers</a></li>
               <li><a href={withBase("/glossary")}>STEM words explained</a></li>
-              <li><a href={withBase("/teachers")}>Classroom worksheets</a></li>
+              <li><a href={withBase("/about")}>About Students 2 Science</a></li>
+              <li><a href={withBase("/cap-program")}>Career Advancement Program</a></li>
               <li><a href={withBase("/sources")}>Where the data comes from</a></li>
             </ul>
           </div>
@@ -118,7 +152,22 @@ const isHome =
       </div>
     </footer>
 
-    <!-- The Career Finder popup. It opens itself once, on the home page. -->
+    <!-- The How to Browse This Site popup. It opens itself once, on the home page. -->
     <CareerFinder autoOpen={isHome} />
+
+    <script>
+      // Dropdowns open on hover and close when the pointer leaves; taps and
+      // keyboard presses still open them natively via details/summary.
+      const drops = document.querySelectorAll<HTMLDetailsElement>('.nav__drop');
+      drops.forEach((drop) => {
+        drop.addEventListener('mouseenter', () => (drop.open = true));
+        drop.addEventListener('mouseleave', () => (drop.open = false));
+      });
+      document.addEventListener('click', (e) => {
+        if (!(e.target as Element).closest('.nav__drop')) {
+          drops.forEach((drop) => (drop.open = false));
+        }
+      });
+    </script>
   </body>
 </html>

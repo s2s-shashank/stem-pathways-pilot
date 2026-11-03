@@ -268,6 +268,109 @@ hr {
   transform: translateY(-1px);
 }
 
+/* The "?" help button at the end of the nav - opens the site guide. */
+.nav__help {
+  width: 1.7rem;
+  height: 1.7rem;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font: inherit;
+  font-size: var(--step--1);
+  font-weight: 800;
+  color: #cdd8ea;
+  background: rgb(255 255 255 / 10%);
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.nav__help:hover,
+.nav__help:focus-visible {
+  background: rgb(255 255 255 / 18%);
+  color: #fff;
+}
+
+/* Dropdown menus in the nav. They are details/summary elements, so taps and
+   keyboard entry work natively; a small script in Base.astro opens them on
+   hover with the mouse. */
+.nav__drop {
+  position: relative;
+}
+
+/* Invisible bridge over the gap between the label and the open menu, so the
+   pointer never "leaves" the dropdown while moving onto the menu. */
+.nav__drop::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  height: 0.4rem;
+  pointer-events: auto;
+}
+
+.nav__label {
+  list-style: none;
+  cursor: pointer;
+  color: #cdd8ea;
+  font-weight: 600;
+  font-size: var(--step--1);
+  padding: 0.45rem 0.7rem;
+  border-radius: var(--radius-pill);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.nav__label::-webkit-details-marker {
+  display: none;
+}
+
+.nav__label::after {
+  content: '▾';
+  margin-left: 0.3rem;
+  opacity: 0.7;
+}
+
+.nav__drop[open] .nav__label,
+.nav__label:hover,
+.nav__label:focus-visible {
+  background: rgb(255 255 255 / 10%);
+  color: #fff;
+}
+
+.nav__menu {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  left: 0;
+  min-width: 13rem;
+  display: grid;
+  padding: 0.4rem;
+  background: var(--navy-900, #0b1220);
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: var(--radius-m, 14px);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 35%);
+  z-index: 60;
+}
+
+.nav__menu a {
+  color: #cdd8ea;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: var(--step--1);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-s, 8px);
+  white-space: nowrap;
+}
+
+.nav__menu a:hover,
+.nav__menu a:focus-visible {
+  background: rgb(255 255 255 / 10%);
+  color: #fff;
+}
+
 @media (max-width: 640px) {
   .site-header .wrap {
     flex-wrap: wrap;
@@ -275,7 +378,11 @@ hr {
   }
   .nav {
     width: 100%;
-    overflow-x: auto;
+    flex-wrap: wrap;
+  }
+  /* Menus opened from the second row would be clipped by a scroll area. */
+  .nav__menu {
+    min-width: 11rem;
   }
 }
 
@@ -324,6 +431,45 @@ hr {
 .hero .wrap {
   position: relative;
   z-index: 1;
+}
+
+.hero__grid {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-m);
+}
+
+.hero__logo {
+  width: 6.5rem;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+  border-radius: 50%;
+  background: #fff;
+  padding: 0.5rem;
+  box-shadow:
+    0 14px 40px rgb(0 0 0 / 35%),
+    0 0 0 1px rgb(255 255 255 / 25%);
+  display: block;
+}
+
+/* Desktop: copy on the left, logo big on the right. */
+@media (min-width: 55rem) {
+  .hero__grid {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2xl);
+  }
+  .hero__copy {
+    min-width: 0;
+  }
+  .hero__logo {
+    width: 15rem;
+    padding: 1.25rem;
+    flex: none;
+  }
 }
 
 .hero h1 {
@@ -403,7 +549,7 @@ hr {
   background: var(--accent-soft);
 }
 
-/* The yellow "Find my career" button, in the header and in the hero. */
+/* The yellow "Career Exploration" button, in the header and in the hero. */
 .btn--sun {
   background: linear-gradient(135deg, #ffd166, #ff9f45);
   color: var(--navy-900);

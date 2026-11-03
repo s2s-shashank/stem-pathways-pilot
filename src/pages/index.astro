@@ -39,28 +39,41 @@ const biggestJob = byEmployment(allOccupations).filter((o) => o.employment > 500
 ---
 
 <Base
-  title="STEM Jobs in New Jersey, New York and Pennsylvania"
+  title="STEM Pathways in New Jersey, New York and Pennsylvania"
   description="See how many STEM jobs are open right now, what they pay, and where the jobs are — real numbers for students in New Jersey, New York and Pennsylvania."
 >
   <section class="hero">
     <div class="wrap">
-      <span class="hero__tag">
-        <span aria-hidden="true">●</span> Live data from official government sources
-      </span>
-      <h1>What does a STEM job actually look like where you live?</h1>
-      <p class="lede">
-        Real numbers about science, technology, engineering and maths jobs in
-        New Jersey, New York and Pennsylvania. How many are open. What they
-        pay. And what you would study to get one.
-      </p>
-      <div class="hero__actions">
-        <a class="btn btn--primary" href={withBase("/nj")}>Start with New Jersey</a>
-        <a class="btn btn--ghost" href={withBase("/compare")}>Compare all three states</a>
-        <button type="button" class="btn btn--sun" data-open-finder>
-          Find my career
-        </button>
+      <div class="hero__grid">
+        <div class="hero__copy">
+          <span class="hero__tag">
+            <span aria-hidden="true">●</span> Live data from official government sources
+          </span>
+          <h1>What does a STEM job actually look like where you live?</h1>
+          <p class="lede">
+            Real numbers about science, technology, engineering and maths jobs in
+            New Jersey, New York and Pennsylvania. How many are open. What they
+            pay. And what you would study to get one.
+          </p>
+          <div class="hero__actions">
+            <a class="btn btn--primary" href={withBase("/nj")}>Start with New Jersey</a>
+            <a class="btn btn--ghost" href={withBase("/compare")}>Compare all three states</a>
+            <button type="button" class="btn btn--sun" data-open-finder>
+              Career Exploration
+            </button>
+          </div>
+          {updated && <p class="stamp">Last updated {updated.slice(0, 10)}</p>}
+        </div>
+        <img
+          class="hero__logo"
+          src={withBase("/s2s-logo.png")}
+          alt="Students 2 Science logo"
+          width="1064"
+          height="1233"
+          loading="eager"
+          decoding="async"
+        />
       </div>
-      {updated && <p class="stamp">Last updated {updated.slice(0, 10)}</p>}
     </div>
   </section>
 
