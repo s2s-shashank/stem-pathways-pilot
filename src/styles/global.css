@@ -440,18 +440,279 @@ hr {
   gap: var(--space-m);
 }
 
-.hero__logo {
-  width: 6.5rem;
-  height: auto;
-  aspect-ratio: 1;
-  object-fit: contain;
+.hero__logo-wrap {
+  position: relative;
+  flex: none;
+  width: 20rem;
+  aspect-ratio: 464 / 538;
+  display: grid;
+  place-items: center;
+}
+
+.hero__logo-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 4%;
   border-radius: 50%;
-  background: #fff;
-  padding: 0.5rem;
-  box-shadow:
-    0 14px 40px rgb(0 0 0 / 35%),
-    0 0 0 1px rgb(255 255 255 / 25%);
+  background: radial-gradient(
+    circle,
+    rgb(105 195 255 / 85%) 0%,
+    rgb(64 164 236 / 45%) 45%,
+    transparent 72%
+  );
+  filter: blur(18px);
+  animation: hero-logo-glow 4s 0.9s ease-in-out infinite;
+}
+
+.hero__orbit-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.hero__orbit-container {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+
+.hero__decor-item {
+  position: absolute;
   display: block;
+  color: #a9e4ff;
+  opacity: 0.85;
+  filter:
+    drop-shadow(0 0 6px rgb(90 180 250 / 85%))
+    drop-shadow(0 0 16px rgb(90 180 250 / 45%));
+  animation: hero-orbit-circular var(--dur, 12s) var(--delay, 0s) linear infinite;
+  width: var(--size, 1.5rem);
+  /* Orbit radius and angle */
+  --radius: var(--orbit-radius, 180px);
+  --angle: var(--orbit-angle, 0deg);
+  /* Position using polar coordinates */
+  left: calc(50% + var(--radius) * cos(var(--angle)));
+  top: calc(50% + var(--radius) * sin(var(--angle)) - 1rem);
+  /* Center the orbit around the logo center */
+  transform-origin: calc(50% - var(--radius) * cos(var(--angle))) calc(50% - var(--radius) * sin(var(--angle)));
+}
+
+.hero__decor-item svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  transform: rotate(var(--item-rotate, 0deg));
+}
+
+.hero__decor-item--dna {
+  --size: 1.8rem;
+  --orbit-radius: 200px;
+  --orbit-angle: 0deg;
+  --item-rotate: 0deg;
+  --dur: 10s;
+  --delay: 0s;
+}
+
+.hero__decor-item--pi {
+  --size: 1.4rem;
+  --orbit-radius: 240px;
+  --orbit-angle: 75deg;
+  --item-rotate: -15deg;
+  --dur: 13s;
+  --delay: -2s;
+}
+
+.hero__decor-item--sigma {
+  --size: 1.5rem;
+  --orbit-radius: 160px;
+  --orbit-angle: 180deg;
+  --item-rotate: 45deg;
+  --dur: 11s;
+  --delay: -4s;
+}
+
+.hero__decor-item--robot {
+  --size: 1.7rem;
+  --orbit-radius: 260px;
+  --orbit-angle: 270deg;
+  --item-rotate: -30deg;
+  --dur: 14s;
+  --delay: -1s;
+}
+
+.hero__decor-item--flask {
+  --size: 1.6rem;
+  --orbit-radius: 220px;
+  --orbit-angle: 330deg;
+  --item-rotate: 20deg;
+  --dur: 12s;
+  --delay: -3s;
+}
+
+.hero__decor-item--atom {
+  --size: 1.5rem;
+  --orbit-radius: 280px;
+  --orbit-angle: 120deg;
+  --item-rotate: -60deg;
+  --dur: 15s;
+  --delay: -5s;
+}
+
+.hero__decor-item--globe {
+  --size: 1.4rem;
+  --orbit-radius: 260px;
+  --orbit-angle: 45deg;
+  --item-rotate: -30deg;
+  --dur: 16s;
+  --delay: -6s;
+}
+
+.hero__decor-item--telescope {
+  --size: 1.6rem;
+  --orbit-radius: 200px;
+  --orbit-angle: 210deg;
+  --item-rotate: 30deg;
+  --dur: 14s;
+  --delay: -3s;
+}
+
+.hero__decor-item--computer {
+  --size: 1.4rem;
+  --orbit-radius: 300px;
+  --orbit-angle: 240deg;
+  --item-rotate: -20deg;
+  --dur: 11s;
+  --delay: -2s;
+}
+
+.hero__decor-item--book {
+  --size: 1.3rem;
+  --orbit-radius: 180px;
+  --orbit-angle: 150deg;
+  --item-rotate: 45deg;
+  --dur: 13s;
+  --delay: -4s;
+}
+
+.hero__logo-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+}
+
+.hero__orbit-center-glow {
+  position: absolute;
+  inset: 15%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgb(105 195 255 / 60%) 0%,
+    rgb(64 164 236 / 30%) 40%,
+    transparent 70%
+  );
+  filter: blur(20px);
+  pointer-events: none;
+}
+
+.hero__logo {
+  position: relative;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 464 / 538;
+  object-fit: contain;
+  filter:
+    brightness(1.4)
+    saturate(1.05)
+    drop-shadow(0 0 1px rgb(255 255 255 / 90%))
+    drop-shadow(0 0 4px rgb(255 255 255 / 65%))
+    drop-shadow(0 0 32px rgb(90 180 250 / 85%))
+    drop-shadow(0 14px 26px rgb(0 0 0 / 55%));
+  animation: hero-logo-in 0.9s cubic-bezier(0.2, 0.9, 0.25, 1.3) backwards;
+  transition:
+    transform 220ms ease,
+    filter 220ms ease;
+}
+
+.hero__logo-wrap:hover .hero__orbit-container {
+  animation-play-state: paused;
+}
+
+.hero__logo-wrap:hover::before {
+  background: radial-gradient(
+    circle,
+    rgb(160 225 255 / 100%) 0%,
+    rgb(80 175 245 / 70%) 45%,
+    transparent 72%
+  );
+  filter: blur(22px);
+}
+
+.hero__logo-wrap:hover .hero__decor-item {
+  opacity: 1;
+  filter:
+    drop-shadow(0 0 8px rgb(140 220 255 / 100%))
+    drop-shadow(0 0 22px rgb(90 180 250 / 70%));
+}
+
+.hero__logo-wrap:hover .hero__logo {
+  transform: scale(1.06);
+  filter:
+    brightness(1.65)
+    saturate(1.15)
+    drop-shadow(0 0 2px rgb(255 255 255 / 100%))
+    drop-shadow(0 0 6px rgb(255 255 255 / 80%))
+    drop-shadow(0 0 48px rgb(90 180 250 / 100%))
+    drop-shadow(0 20px 38px rgb(0 0 0 / 60%));
+}
+
+@keyframes hero-logo-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.55) rotate(-10deg);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.06) rotate(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+@keyframes hero-logo-glow {
+  0%,
+  100% {
+    opacity: 0.8;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.25);
+  }
+}
+
+@keyframes hero-orbit-circular {
+  0% {
+    transform: rotate(0deg) scale(0.8);
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.85;
+  }
+  95% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+    opacity: 0;
+  }
 }
 
 /* Desktop: copy on the left, logo big on the right. */
@@ -466,9 +727,16 @@ hr {
     min-width: 0;
   }
   .hero__logo {
-    width: 15rem;
-    padding: 1.25rem;
-    flex: none;
+    width: 20rem;
+  }
+}
+
+@media (max-width: 54.99rem) {
+  .hero__logo-wrap {
+    align-self: center;
+  }
+  .hero__logo {
+    width: 12rem;
   }
 }
 

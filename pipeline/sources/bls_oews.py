@@ -38,6 +38,11 @@ def _to_int(value: str) -> int | None:
 def _download(url: str, filename: str) -> str:
     os.makedirs(CACHE_DIR, exist_ok=True)
     path = os.path.join(CACHE_DIR, filename)
+    # An interrupted or empty download leaves a bad file behind; the cache
+    # must not trust it forever.
+    if os.path.exists(path) and not zipfile.is_zipfile(path):
+        print(f"  cached {filename} is corrupt - downloading again")
+        os.remove(path)
     if not os.path.exists(path):
         print(f"  downloading {filename} ...")
         with open(path, "wb") as handle:

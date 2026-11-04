@@ -5,6 +5,7 @@ import StateCard from '../components/StateCard.astro';
 import StatTile from '../components/StatTile.astro';
 import Bars from '../components/Bars.astro';
 import MyMatches from '../components/MyMatches.astro';
+import HeroScience from '../components/HeroScience.astro';
 import { STATES } from '../data/states';
 import {
   getStateData,
@@ -78,15 +79,9 @@ const description =
           {updated && <p class="stamp">{t('home.updated', lang)} {updated.slice(0, 10)}</p>}
           {lang === 'es' && <p class="stamp">{t('es.notice', lang)}</p>}
         </div>
-        <img
-          class="hero__logo"
-          src={withBase("/s2s-logo.png")}
-          alt="Students 2 Science logo"
-          width="1064"
-          height="1233"
-          loading="eager"
-          decoding="async"
-        />
+          <div class="hero__logo-wrap">
+            <HeroScience />
+          </div>
       </div>
     </div>
   </section>
