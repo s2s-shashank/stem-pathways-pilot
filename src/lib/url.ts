@@ -1,7 +1,7 @@
 /**
  * Build internal links that respect the site's base path.
  *
- * The site is published at github.com/Students-2-Science/stem-pathways-pilot,
+ * The site is published at github.com/s2s-shashank/stem-pathways-pilot,
  * so every internal URL needs the /stem-pathways-pilot prefix. Astro applies
  * that automatically to assets it generates, but not to hrefs we write by hand.
  */

@@ -22,7 +22,7 @@ export default defineConfig({
   // The site is 100% static HTML: every page is rendered at build time from
   // the JSON files in src/data, so there is no server and no client framework.
   output: 'static',
-  site: 'https://students-2-science.github.io',
+  site: 'https://s2s-shashank.github.io',
   // GitHub Pages project sites live under /<repo-name>/
   base: '/stem-pathways-pilot/',
   // Let pages load with or without the trailing slash (the dev server would
