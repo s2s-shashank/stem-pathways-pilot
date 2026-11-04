@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://s2s-shashank.github.io/stem-jobs/sitemap-index.xml
+Sitemap: https://students-2-science.github.io/stem-pathways-pilot/sitemap-index.xml

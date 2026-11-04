@@ -1,8 +1,9 @@
 /**
  * The dev server does not match the base path itself without a trailing
- * slash (/stem-jobs -> 404, because it resolves to /stem-jobs/stem-jobs in
- * middleware). Redirect it to /stem-jobs/ once, in one place. The static
- * build has no runtime, so this only affects astro dev.
+ * slash (/stem-pathways-pilot -> 404, because it resolves to
+ * /stem-pathways-pilot/stem-pathways-pilot in middleware). Redirect it to
+ * /stem-pathways-pilot/ once, in one place. The static build has no runtime,
+ * so this only affects astro dev.
  */
 import { defineMiddleware } from 'astro/middleware';
 

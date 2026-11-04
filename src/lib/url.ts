@@ -1,9 +1,9 @@
 /**
  * Build internal links that respect the site's base path.
  *
- * The site is published at github.com/s2s-shashank/stem-jobs, so every
- * internal URL needs the /stem-jobs prefix. Astro applies that automatically
- * to assets it generates, but not to hrefs we write by hand.
+ * The site is published at github.com/Students-2-Science/stem-pathways-pilot,
+ * so every internal URL needs the /stem-pathways-pilot prefix. Astro applies
+ * that automatically to assets it generates, but not to hrefs we write by hand.
  */
 const BASE = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '');
 

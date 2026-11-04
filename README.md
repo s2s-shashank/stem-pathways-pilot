@@ -151,7 +151,7 @@ npx playwright install chromium
 
 ## Live site
 
-<https://s2s-shashank.github.io/stem-jobs/>
+<https://students-2-science.github.io/stem-pathways-pilot/>
 
 ## Deploying
 

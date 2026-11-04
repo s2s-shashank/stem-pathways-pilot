@@ -35,7 +35,8 @@ const origin = await new Promise((resolve, reject) => {
   }, 200);
 });
 
-const BASE = process.env.BASE_URL || `${origin}/stem-jobs/`;
+const BASE = process.env.BASE_URL || `${origin}/stem-pathways-pilot/`;
+const BASE_PATH = new URL(BASE).pathname;
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
@@ -169,7 +170,7 @@ console.log(`  ok: all ${cards.length} cards have pay, growth, jobs and a link`)
 
 // The link must work with the site's base path.
 const href = cards[0].href ?? '';
-check(href.startsWith('/stem-jobs/careers/'), `career link keeps the base path (${href})`);
+check(href.startsWith(`${BASE_PATH}careers/`), `career link keeps the base path (${href})`);
 
 const resp = await page.request.get(new URL(href, BASE).href);
 check(resp.ok(), `career page behind the link loads (${resp.status()})`);
