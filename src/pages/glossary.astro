@@ -1,8 +1,15 @@
 ---
 import Base from '../layouts/Base.astro';
 import { withBase } from '../lib/url';
+import { t, type Lang } from '../i18n';
 
-const terms = [
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = 'en' } = Astro.props;
+
+const termsEn = [
   {
     term: 'STEM',
     def: `Science, Technology, Engineering and Math. A loose group of careers that use math, science and problem solving. There is no single official list, so every site picks its own - ours is described on the <a href="${withBase('/sources')}">sources page</a>.`,
@@ -84,24 +91,106 @@ const terms = [
     def: 'What people usually earn when they are brand new at the job - the 10th percentile of the pay range.',
   },
 ];
+
+const termsEs = [
+  {
+    term: 'STEM',
+    def: `Ciencia, Tecnología, Ingeniería y Matemáticas. Un grupo amplio de carreras que usan matemáticas, ciencia y resolución de problemas. No hay una lista oficial única, así que cada sitio elige la suya: la nuestra se describe en la <a href="${withBase('/es/sources')}">página de fuentes</a>.`,
+  },
+  {
+    term: 'Ocupación',
+    def: 'Un tipo de empleo, no una empresa. "Enfermera registrada" es una ocupación tanto si trabajas en un hospital de Newark como en una clínica de Boise.',
+  },
+  {
+    term: 'Código SOC',
+    def: 'Un número de seis dígitos que el gobierno usa para clasificar cada empleo: por ejemplo, 29-1141 es Enfermeras Registradas. En este sitio el código está en la dirección de cada empleo, como /careers/29-1141.',
+  },
+  {
+    term: 'Empleo',
+    def: 'Cuántas personas trabajan en un puesto ahora mismo, contado por la Oficina de Estadísticas Laborales en su encuesta de mayo a los empleadores.',
+  },
+  {
+    term: 'Pago mediano',
+    def: 'El pago de la persona que está en el medio del rango. La mitad gana más, la mitad gana menos. Suele ser una cifra más justa que el promedio, porque un salario muy alto puede elevar el promedio.',
+  },
+  {
+    term: 'Pago medio (promedio)',
+    def: 'Todos los salarios sumados y divididos entre el número de personas. Útil, pero fácilmente elevado por un puñado de personas que ganan mucho.',
+  },
+  {
+    term: 'Salario inicial',
+    def: 'Lo que suele ganar la gente cuando es completamente nueva en el puesto: el percentil 10 del rango salarial.',
+  },
+  {
+    term: 'Crecimiento del empleo',
+    def: 'La predicción de la Oficina de Estadísticas Laborales sobre cuántos empleos más habrá en una década. Es una proyección, no una promesa.',
+  },
+  {
+    term: 'Vacantes',
+    def: 'Cuántos empleos se espera que se abran cada año: no solo empleos nuevos, también los que la gente deja. Muchas vacantes en un campo significa mucha contratación.',
+  },
+  {
+    term: 'Zona metropolitana',
+    def: 'Una ciudad y todo lo que la rodea que comparte un mercado laboral. "New York-Newark-Jersey City" es una zona metropolitana que cubre partes de dos estados.',
+  },
+  {
+    term: 'Servicio civil',
+    def: 'Empleos del gobierno que deben cubrirse mediante una lista de contratación. Postularte a un examen de servicio civil te pone en la lista, y las agencias contratan desde ella.',
+  },
+  {
+    term: 'USAJOBS',
+    def: 'El sitio web oficial de empleos del gobierno federal: el Departamento de Defensa, la NASA, la FAA y unas 500 agencias más.',
+  },
+  {
+    term: 'CareerOneStop',
+    def: 'Un sitio web del Departamento de Trabajo que reúne ofertas de muchas bolsas de trabajo del sector privado en una sola búsqueda.',
+  },
+  {
+    term: 'Oferta vs convocatoria',
+    def: 'Una oferta es un empleo concreto al que puedes postularte. Una convocatoria (como un examen de servicio civil de Nueva Jersey) es una invitación a hacer una prueba para ser considerado para una lista de empleos.',
+  },
+  {
+    term: 'Sector privado',
+    def: 'Empleos en empresas que no son parte del gobierno: un hospital, una empresa de software, una fábrica. Las ofertas del sector privado vienen de CareerOneStop, que reúne vacantes de miles de empleadores.',
+  },
+  {
+    term: 'Encuesta vs conteo en vivo',
+    def: 'La Oficina de Estadísticas Laborales cuenta a todos los que están en nómina, pero solo una vez al año. Los conteos en vivo vienen de las bolsas de trabajo y cambian cada día. Por eso los dos números nunca coinciden del todo.',
+  },
+  {
+    term: 'Aprendizaje',
+    def: 'Un programa de formación pagado donde trabajas y aprendes al mismo tiempo, normalmente durante varios años. Muchos oficios especializados y algunos empleos STEM se basan en aprendizajes.',
+  },
+  {
+    term: 'Industria',
+    def: 'El tipo de negocio de un empleador: un hospital, una empresa de software, una constructora. El mismo título de puesto puede existir en muchas industrias.',
+  },
+  {
+    term: 'Crecimiento proyectado',
+    def: 'Una predicción de la Oficina de Estadísticas Laborales sobre cuántos empleos existirán en el futuro. Se basa en suposiciones, así que tómalo como una pista fuerte y no como una promesa.',
+  },
+  {
+    term: 'Pago inicial',
+    def: 'Lo que suele ganar la gente cuando es completamente nueva en el puesto: el percentil 10 del rango salarial.',
+  },
+];
+
+const terms = lang === 'es' ? termsEs : termsEn;
+
+const title = lang === 'es' ? 'Palabras STEM explicadas' : 'STEM words explained';
+const description =
+  lang === 'es'
+    ? 'Un glosario en lenguaje sencillo de las palabras de datos y empleo usadas en este sitio, para estudiantes y maestros.'
+    : 'A plain-English glossary of the data and job words used on this site, for students and teachers.';
 ---
 
-<Base
-  title="STEM words explained"
-  description="A plain-English glossary of the data and job words used on this site, for students and teachers."
->
+<Base title={title} description={description} lang={lang}>
   <section class="hero">
     <div class="wrap">
-      <span class="hero__tag"><span aria-hidden="true">●</span> Glossary</span>
-      <h1>The words we use, explained</h1>
-      <p class="lede">
-        Every data site has jargon. Here is ours, in plain English - the kind
-        you could explain to a friend in one sentence.
-      </p>
-      <p class="small muted">
-        New to the site? Start with the three numbers on a state page: they
-        look similar but they count completely different things.
-      </p>
+      <span class="hero__tag"><span aria-hidden="true">●</span> {t('glo.tag', lang)}</span>
+      <h1>{t('glo.h1', lang)}</h1>
+      <p class="lede">{t('glo.lede', lang)}</p>
+      <p class="small muted">{t('glo.small', lang)}</p>
     </div>
   </section>
 
@@ -118,8 +207,7 @@ const terms = [
         }
       </dl>
       <p class="source-note">
-        Something missing or confusing? <a href={withBase('/sources')}>Tell us where the data comes from</a>
-        and we will add it here.
+        {t('glo.missing', lang)} <a href={withBase('/sources')}>{t('glo.tellus', lang)}</a>
       </p>
     </div>
   </section>

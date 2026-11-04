@@ -1,6 +1,7 @@
 ---
 import { withBase } from '../lib/url';
 import { lastUpdated, formatDate } from '../lib/data';
+import { t, type Lang } from '../i18n';
 import CareerFinder from '../components/CareerFinder.astro';
 import '../styles/global.css';
 
@@ -9,20 +10,32 @@ interface Props {
   description: string;
   /** Adds " | STEM Pathways" to the title automatically. */
   raw?: boolean;
+  lang?: Lang;
 }
 
-const { title, description, raw = false } = Astro.props;
+const { title, description, raw = false, lang = 'en' } = Astro.props;
 const fullTitle = raw ? title : `${title} | STEM Pathways`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
-const updated = formatDate(lastUpdated());
+const updated = formatDate(lastUpdated(), lang);
 // The how-to-browse popup opens itself on the home page only.
 const homePath = withBase('/');
 const isHome =
   Astro.url.pathname === homePath || Astro.url.pathname === homePath.replace(/\/$/, '');
+
+// Strip the /es prefix (and base) to find the English twin of this page.
+const base = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '');
+const strip = (p: string) => {
+  let s = p.startsWith(base) ? p.slice(base.length) : p;
+  s = s.replace(/^\/es(?=\/|$)/, '') || '/';
+  return s.endsWith('/') || s === '' ? s : `${s}/`;
+};
+const plainPath = strip(Astro.url.pathname);
+const enPath = withBase(plainPath);
+const esPath = withBase(`/es${plainPath === '/' ? '' : plainPath}`);
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={lang}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -31,6 +44,9 @@ const isHome =
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/png" href={withBase("/s2s-logo.png")} />
     <link rel="sitemap" href={withBase("/sitemap-index.xml")} />
+    <link rel="alternate" hreflang="en" href={new URL(enPath, Astro.site)} />
+    <link rel="alternate" hreflang="es" href={new URL(esPath, Astro.site)} />
+    <link rel="alternate" hreflang="x-default" href={new URL(enPath, Astro.site)} />
     <meta name="generator" content={Astro.generator} />
 
     <meta property="og:type" content="website" />
@@ -44,7 +60,7 @@ const isHome =
     <meta name="theme-color" content="#0b1220" />
   </head>
   <body>
-    <a class="skip-link" href="#main">Skip to content</a>
+    <a class="skip-link" href="#main">{t('skip', lang)}</a>
 
     <header class="site-header">
       <div class="wrap">
@@ -58,39 +74,48 @@ const isHome =
           />
           <span>STEM Pathways</span>
         </a>
-        <nav class="nav" aria-label="Main">
+        <nav class="nav" aria-label={t('nav.main', lang)}>
           <details class="nav__drop">
-            <summary class="nav__label">States</summary>
+            <summary class="nav__label">{t('nav.states', lang)}</summary>
             <div class="nav__menu">
               <a href={withBase("/nj")}>New Jersey</a>
               <a href={withBase("/ny")}>New York</a>
               <a href={withBase("/pa")}>Pennsylvania</a>
-              <a href={withBase("/compare")}>Compare all three</a>
+              <a href={withBase("/compare")}>{t('nav.compareAll', lang)}</a>
             </div>
           </details>
           <details class="nav__drop">
-            <summary class="nav__label">About S2S</summary>
+            <summary class="nav__label">{t('nav.aboutS2S', lang)}</summary>
             <div class="nav__menu">
-              <a href={withBase("/about")}>About Us</a>
-              <a href={withBase("/cap-program")}>CAP Program</a>
+              <a href={withBase("/about")}>{t('nav.aboutUs', lang)}</a>
+              <a href={withBase("/cap-program")}>{t('nav.cap', lang)}</a>
             </div>
           </details>
-          <a href={withBase("/labs2life")}>Labs2Life</a>
+          <a href={withBase("/labs2life")}>{t('nav.labs2life', lang)}</a>
           <details class="nav__drop">
-            <summary class="nav__label">More</summary>
+            <summary class="nav__label">{t('nav.more', lang)}</summary>
             <div class="nav__menu">
-              <a href={withBase("/quiz")}>Quiz</a>
-              <a href={withBase("/glossary")}>Glossary</a>
-              <a href={withBase("/sources")}>Sources</a>
-              <a href={withBase("/careers")}>Browse careers</a>
+              <a href={withBase("/quiz")}>{t('nav.quiz', lang)}</a>
+              <a href={withBase("/glossary")}>{t('nav.glossary', lang)}</a>
+              <a href={withBase("/sources")}>{t('nav.sources', lang)}</a>
+              <a href={withBase("/careers")}>{t('nav.browseCareers', lang)}</a>
+            </div>
+          </details>
+          <details class="nav__drop">
+            <summary class="nav__label" aria-label={t('nav.lang', lang)}>
+              <span aria-hidden="true">🌐</span> {lang === 'es' ? 'ES' : 'EN'}
+            </summary>
+            <div class="nav__menu">
+              <a href={enPath} lang="en" data-lang-link aria-current={lang === 'en' ? 'true' : undefined}>English</a>
+              <a href={esPath} lang="es" data-lang-link aria-current={lang === 'es' ? 'true' : undefined}>Español</a>
             </div>
           </details>
           <button
             type="button"
             class="nav__help"
             data-open-finder
-            aria-label="How to browse this site"
-            title="How to browse this site"
+            aria-label={t('nav.help', lang)}
+            title={t('nav.help', lang)}
           >
             ?
           </button>
@@ -107,53 +132,47 @@ const isHome =
         <div class="footer-grid">
           <div>
             <h2>STEM Pathways</h2>
-            <p>
-              Real numbers about science, technology, engineering and math careers
-              in New Jersey, New York and Pennsylvania — built for students who
-              are figuring out what to do next.
-            </p>
+            <p>{t('footer.blurb', lang)}</p>
           </div>
           <div>
-            <h2>Explore</h2>
+            <h2>{t('footer.explore', lang)}</h2>
             <ul>
-              <li><a href={withBase("/labs2life")}>Labs2Life — labs to careers</a></li>
-              <li><a href={withBase("/about")}>About Students 2 Science</a></li>
-              <li><a href={withBase("/cap-program")}>Career Advancement Program (CAP)</a></li>
+              <li><a href={withBase("/labs2life")}>{t('footer.labs', lang)}</a></li>
+              <li><a href={withBase("/about")}>{t('footer.about', lang)}</a></li>
+              <li><a href={withBase("/cap-program")}>{t('footer.cap', lang)}</a></li>
             </ul>
           </div>
           <div>
-            <h2>States</h2>
+            <h2>{t('footer.states', lang)}</h2>
             <ul>
               <li><a href={withBase("/nj")}>New Jersey</a></li>
               <li><a href={withBase("/ny")}>New York</a></li>
               <li><a href={withBase("/pa")}>Pennsylvania</a></li>
-              <li><a href={withBase("/compare")}>Compare all three</a></li>
+              <li><a href={withBase("/compare")}>{t('nav.compareAll', lang)}</a></li>
             </ul>
           </div>
           <div>
-            <h2>Learn</h2>
+            <h2>{t('footer.learn', lang)}</h2>
             <ul>
-              <li><a href={withBase("/labs2life")}>Labs2Life — from lab to career</a></li>
-              <li><a href={withBase("/quiz")}>Guess the salary</a></li>
-              <li><a href={withBase("/careers")}>Browse careers</a></li>
-              <li><a href={withBase("/glossary")}>STEM words explained</a></li>
-              <li><a href={withBase("/about")}>About Students 2 Science</a></li>
-              <li><a href={withBase("/cap-program")}>Career Advancement Program</a></li>
-              <li><a href={withBase("/sources")}>Where the data comes from</a></li>
+              <li><a href={withBase("/labs2life")}>{t('footer.labs2', lang)}</a></li>
+              <li><a href={withBase("/quiz")}>{t('footer.quiz', lang)}</a></li>
+              <li><a href={withBase("/careers")}>{t('footer.careers', lang)}</a></li>
+              <li><a href={withBase("/glossary")}>{t('footer.glossary', lang)}</a></li>
+              <li><a href={withBase("/about")}>{t('footer.about', lang)}</a></li>
+              <li><a href={withBase("/cap-program")}>{t('footer.cap2', lang)}</a></li>
+              <li><a href={withBase("/sources")}>{t('footer.sources', lang)}</a></li>
             </ul>
           </div>
         </div>
         <p class="footer-note">
-          Every number on this site comes from an official government source and
-          is labeled with its date. Nothing here is advice about your future —
-          it is a starting point for exploring.
-          {updated && <> Last data run: {updated}.</>}
+          {t('footer.note', lang)}
+          {updated && <> {t('footer.lastRun', lang)} {updated}.</>}
         </p>
       </div>
     </footer>
 
     <!-- The How to Browse This Site popup. It opens itself once, on the home page. -->
-    <CareerFinder autoOpen={isHome} />
+    <CareerFinder autoOpen={isHome} lang={lang} />
 
     <script>
       // Dropdowns open on hover and close when the pointer leaves; taps and
@@ -169,5 +188,26 @@ const isHome =
         }
       });
     </script>
+    {
+      lang === 'es' && (
+        <script is:inline define:vars={{ base: base || '' }}>
+          // Spanish pages reuse the English components, whose links are
+          // written for /. Rewrite every same-language internal link once, at
+          // load, so navigation stays inside /es/. The language switcher links
+          // carry data-lang-link and are left alone.
+          const skip = /^\/es(\/|$)/;
+          const isInternal = (p) =>
+            p.startsWith('/') && !p.startsWith('//') && !skip.test(p) && !p.includes('.');
+          document
+            .querySelectorAll('a[href^="/"]:not([data-lang-link])')
+            .forEach((a) => {
+              const href = a.getAttribute('href');
+              if (!href || !href.startsWith(base)) return;
+              const rest = href.slice(base.length);
+              if (isInternal(rest)) a.setAttribute('href', base + '/es' + rest);
+            });
+        </script>
+      )
+    }
   </body>
 </html>

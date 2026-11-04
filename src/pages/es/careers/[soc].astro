@@ -1,0 +1,9 @@
+---
+import Page, { getStaticPaths } from '../../careers/[soc].astro';
+
+export { getStaticPaths };
+
+const { soc } = Astro.params;
+---
+
+<Page soc={soc} lang="es" />

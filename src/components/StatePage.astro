@@ -2,6 +2,7 @@
 import { withBase } from '../lib/url';
 import type { StateMeta } from '../data/states';
 import { CATEGORIES } from '../data/states';
+import { t, CATEGORY_LABELS_ES, type Lang, type I18nKey } from '../i18n';
 import Bars from './Bars.astro';
 import StatTile from './StatTile.astro';
 import Explain from './Explain.astro';
@@ -18,9 +19,12 @@ import {
 
 interface Props {
   state: StateMeta;
+  lang?: Lang;
 }
 
-const { state } = Astro.props;
+const { state, lang = 'en' } = Astro.props;
+const catLabel = (id: string, en: string) =>
+  lang === 'es' ? (CATEGORY_LABELS_ES[id] ?? en) : en;
 const data = getStateData(state.code);
 const has = Boolean(data);
 const occ = data?.occupations ?? [];
@@ -40,7 +44,7 @@ const growing = [...occ]
 const categoryGroups = byCategory(occ, CATEGORIES);
 const fieldBars = categoryGroups
   .map((g) => ({
-    label: g.category.label,
+    label: catLabel(g.category.id, g.category.label),
     value: g.employment,
     color: g.category.color,
   }))
@@ -62,7 +66,7 @@ const medianAll =
 
 const liveBars = live
   ? CATEGORIES.map((c) => ({
-      label: c.label,
+      label: catLabel(c.id, c.label),
       value: live.byCategory[c.id] ?? 0,
       color: c.color,
     }))
@@ -72,7 +76,7 @@ const liveBars = live
 
 const privateBars = priv
   ? CATEGORIES.map((c) => ({
-      label: c.label,
+      label: catLabel(c.id, c.label),
       value: priv.byCategory[c.id] ?? 0,
       color: c.color,
     }))
@@ -90,26 +94,24 @@ const employerBars = (priv?.topEmployers ?? []).slice(0, 6).map((c) => ({
   color: 'var(--c-data)',
 }));
 
-const SOURCE_NOTES: Record<string, string> = {
-  USAJOBS: 'Open federal jobs. You can apply for these today.',
-  'NJ Civil Service':
-    'Open New Jersey state and local government exams. Applying puts you on a hiring list.',
-  StateJobsNY: 'Open New York State government jobs. You can apply for these today.',
-  'Commonwealth Careers':
-    'Open Pennsylvania state government jobs. You can apply for these today.',
-  CareerOneStop:
-    'Private-sector jobs, counted by searching for each STEM occupation. The same job can be counted twice, so this number is kept separate.',
+const SOURCE_NOTES: Record<string, I18nKey> = {
+  USAJOBS: 'sp.note.usajobs',
+  'NJ Civil Service': 'sp.note.njcivil',
+  StateJobsNY: 'sp.note.ny',
+  'Commonwealth Careers': 'sp.note.pa',
+  CareerOneStop: 'sp.note.cos',
 };
 ---
 
 <section class="state-hero" style={`--accent:${state.color}`}>
   <div class="wrap">
     <span class="hero__tag">
-      <span aria-hidden="true">●</span> {state.abbr} STEM jobs
+      <span aria-hidden="true">●</span> {state.abbr} {t('sp.tag', lang)}
     </span>
-    <h1>STEM Pathways to {state.name}</h1>
-    <p class="lede">{state.blurb}</p>
-    {data && <p class="stamp">Numbers as of {formatDate(data.asOf)}</p>}
+    <h1>{t('sp.h1', lang)} {state.name}</h1>
+    <p class="lede">{t(`state.${state.code}.blurb` as const, lang)}</p>
+    {data && <p class="stamp">{t('sp.asOf', lang)} {formatDate(data.asOf, lang)}</p>}
+    {lang === 'es' && <p class="stamp">{t('es.notice', lang)}</p>}
   </div>
 </section>
 
@@ -117,14 +119,11 @@ const SOURCE_NOTES: Record<string, string> = {
   !has ? (
     <section class="section">
       <div class="wrap wrap--narrow">
-        <h2>Data is on its way</h2>
-        <p class="lede">
-          We are still collecting {state.name} numbers. Check back soon - the
-          live job board, salary charts and metro breakdowns will appear here.
-        </p>
+        <h2>{t('sp.noData.h2', lang)}</h2>
+        <p class="lede">{t('sp.noData.p', lang, { state: state.name })}</p>
         <p>
           <a class="btn btn--primary" href={withBase('/sources')}>
-            See what we collect and why
+            {t('sp.noData.cta', lang)}
           </a>
         </p>
       </div>
@@ -137,23 +136,23 @@ const SOURCE_NOTES: Record<string, string> = {
             <StatTile
               accent
               value={formatNumber(totalEmployment)}
-              label="people already work in STEM jobs here"
-              note="From a survey of every employer in the state"
+              label={t('sp.stat1.label', lang)}
+              note={t('sp.stat1.note', lang)}
             />
             <StatTile
               value={formatNumber(priv?.total)}
-              label="private-sector STEM job matches right now"
-              note="Searched per job, so one job can be counted more than once"
+              label={t('sp.stat2.label', lang)}
+              note={t('sp.stat2.note', lang)}
             />
             <StatTile
               value={formatNumber(live?.total)}
-              label="government STEM jobs open today"
-              note="Federal, state and local"
+              label={t('sp.stat3.label', lang)}
+              note={t('sp.stat3.note', lang)}
             />
             <StatTile
               value={formatMoney(medianAll)}
-              label="a typical STEM salary"
-              note="What the person in the middle earns"
+              label={t('sp.stat4.label', lang)}
+              note={t('sp.stat4.note', lang)}
             />
           </div>
         </div>
@@ -162,25 +161,17 @@ const SOURCE_NOTES: Record<string, string> = {
       <section class="section section--tight">
         <div class="wrap wrap--narrow">
           <div class="card start-card">
-            <h2 class="card__title">How to read this page</h2>
-            <p>
-              There are three different numbers on this page, and they are
-              counting different things. Knowing which is which is most of
-              the work.
-            </p>
+            <h2 class="card__title">{t('sp.read.h2', lang)}</h2>
+            <p>{t('sp.read.p', lang)}</p>
             <ul class="start-list">
               <li>
-                <strong>People who already work in STEM</strong> - a count of
-                everyone on the payroll, from a survey of employers. It changes
-                slowly, once a year.
+                <strong>{t('sp.read.1a', lang)}</strong>{t('sp.read.1b', lang)}
               </li>
               <li>
-                <strong>Job postings</strong> - openings advertised right now.
-                A posting is one job. It might be filled next week.
+                <strong>{t('sp.read.2a', lang)}</strong>{t('sp.read.2b', lang)}
               </li>
               <li>
-                <strong>Government jobs</strong> - a smaller set of openings
-                you can apply for directly, listed on official job boards.
+                <strong>{t('sp.read.3a', lang)}</strong>{t('sp.read.3b', lang)}
               </li>
             </ul>
           </div>
@@ -190,18 +181,15 @@ const SOURCE_NOTES: Record<string, string> = {
       <section class="section section--alt">
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">What kinds of STEM work?</span>
-            <h2>Where people work</h2>
-            <p class="lede">
-              This is every person in {state.name} working in a STEM job, split
-              into the seven fields we use.
-            </p>
+            <span class="eyebrow">{t('sp.fields.eyebrow', lang)}</span>
+            <h2>{t('sp.fields.h2', lang)}</h2>
+            <p class="lede">{t('sp.fields.lede', lang, { state: state.name })}</p>
           </div>
           <div class="card">
             <Bars
               items={fieldBars}
-              label={`People in STEM jobs in ${state.name}, by field`}
-              suffix=" people"
+              label={t('sp.fields.label', lang, { state: state.name })}
+              suffix={t('sp.suffix.people', lang)}
             />
           </div>
         </div>
@@ -210,54 +198,47 @@ const SOURCE_NOTES: Record<string, string> = {
       <section class="section">
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Who's hiring right now</span>
-            <h2>Private-sector STEM jobs in {state.name}</h2>
-            <p class="lede">
-              Job postings from CareerOneStop, the federal site that collects
-              openings from thousands of private employers. We ask it about
-              every STEM job we track, so these counts are exact for each
-              occupation.
-            </p>
+            <span class="eyebrow">{t('sp.private.eyebrow', lang)}</span>
+            <h2>{t('sp.private.h2', lang, { state: state.name })}</h2>
+            <p class="lede">{t('sp.private.lede', lang)}</p>
           </div>
           {priv && priv.total > 0 ? (
             <>
               <div class="grid grid--2">
                 <div class="card">
-                  <h3 class="card__title">Postings by field</h3>
+                  <h3 class="card__title">{t('sp.private.byField', lang)}</h3>
                   <Bars
                     items={privateBars}
-                    label={`Private-sector STEM postings in ${state.name} by field`}
-                    suffix=" posting"
+                    label={t('sp.private.byFieldLabel', lang, { state: state.name })}
+                    suffix={t('sp.suffix.posting', lang)}
                   />
                   <p class="source-note">
-                    {formatNumber(priv.total)} job matches in the last 30 days,
-                    within 50 miles of the state. We search once per job, so
-                    one job can be counted more than once.
+                    {t('sp.private.note', lang, { count: formatNumber(priv.total) })}
                   </p>
                 </div>
                 <div class="card">
-                  <h3 class="card__title">Where they are hiring</h3>
+                  <h3 class="card__title">{t('sp.private.where', lang)}</h3>
                   <Bars
                     items={cityBars}
-                    label={`Private-sector STEM postings in ${state.name} by city`}
-                    suffix=" posting"
+                    label={t('sp.private.whereLabel', lang, { state: state.name })}
+                    suffix={t('sp.suffix.posting', lang)}
                   />
                 </div>
               </div>
               {employerBars.length > 0 && (
                 <div class="card top-employers">
-                  <h3 class="card__title">Who is hiring the most</h3>
+                  <h3 class="card__title">{t('sp.private.who', lang)}</h3>
                   <Bars
                     items={employerBars}
-                    label={`Top private-sector STEM employers in ${state.name}`}
-                    suffix=" posting"
+                    label={t('sp.private.whoLabel', lang, { state: state.name })}
+                    suffix={t('sp.suffix.posting', lang)}
                   />
                 </div>
               )}
             </>
           ) : (
             <div class="card">
-              <p class="muted">Private-sector posting counts are not available right now.</p>
+              <p class="muted">{t('sp.private.none', lang)}</p>
             </div>
           )}
         </div>
@@ -266,26 +247,23 @@ const SOURCE_NOTES: Record<string, string> = {
       <section class="section section--alt">
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Government jobs</span>
-            <h2>Jobs you can apply for today</h2>
-            <p class="lede">
-              Federal, state and local openings - the kind you can apply for
-              right now on an official website.
-            </p>
+            <span class="eyebrow">{t('sp.gov.eyebrow', lang)}</span>
+            <h2>{t('sp.gov.h2', lang)}</h2>
+            <p class="lede">{t('sp.gov.lede', lang)}</p>
           </div>
           <div class="split">
             <div class="card">
               <Bars
                 items={liveBars}
-                label={`Open government STEM jobs in ${state.name} by field`}
-                suffix=" job"
+                label={t('sp.gov.label', lang, { state: state.name })}
+                suffix={t('sp.suffix.job', lang)}
               />
               <table class="sources-table">
-                <caption class="sr-only">Where the open job counts come from</caption>
+                <caption class="sr-only">{t('sp.gov.caption', lang)}</caption>
                 <thead>
                   <tr>
-                    <th scope="col">Source</th>
-                    <th scope="col" class="num">Count</th>
+                    <th scope="col">{t('sp.gov.source', lang)}</th>
+                    <th scope="col" class="num">{t('sp.gov.count', lang)}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -297,7 +275,7 @@ const SOURCE_NOTES: Record<string, string> = {
                           <a href={source.url} rel="noopener">
                             {source.name}
                           </a>
-                          <span class="source-note">{SOURCE_NOTES[source.name] ?? ''}</span>
+                          <span class="source-note">{SOURCE_NOTES[source.name] ? t(SOURCE_NOTES[source.name], lang) : ''}</span>
                         </th>
                         <td class="num">{formatNumber(source.count)}</td>
                       </tr>
@@ -306,7 +284,7 @@ const SOURCE_NOTES: Record<string, string> = {
               </table>
             </div>
             <div class="card">
-              <h3 class="card__title">Some real examples</h3>
+              <h3 class="card__title">{t('sp.gov.examples', lang)}</h3>
               <ul class="postings">
                 {(live?.postings ?? []).slice(0, 8).map((p) => (
                   <li class="posting">
@@ -323,7 +301,7 @@ const SOURCE_NOTES: Record<string, string> = {
                   </li>
                 ))}
               </ul>
-              {live?.postings.length === 0 && <p class="muted">No postings recorded yet.</p>}
+              {live?.postings.length === 0 && <p class="muted">{t('sp.gov.none', lang)}</p>}
             </div>
           </div>
         </div>
@@ -332,12 +310,9 @@ const SOURCE_NOTES: Record<string, string> = {
       <section class="section">
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">The most common jobs</span>
-            <h2>What most STEM workers actually do</h2>
-            <p class="lede">
-              Click any job to see what it involves, what it pays and how many
-              openings there are right now.
-            </p>
+            <span class="eyebrow">{t('sp.common.eyebrow', lang)}</span>
+            <h2>{t('sp.common.h2', lang)}</h2>
+            <p class="lede">{t('sp.common.lede', lang)}</p>
           </div>
           <div class="card">
             <Bars
@@ -346,8 +321,8 @@ const SOURCE_NOTES: Record<string, string> = {
                 value: o.employment,
                 href: `/careers/${o.soc}`,
               }))}
-              label={`Biggest STEM jobs in ${state.name}`}
-              suffix=" people"
+              label={t('sp.common.label', lang, { state: state.name })}
+              suffix={t('sp.suffix.people', lang)}
             />
           </div>
         </div>
@@ -356,12 +331,9 @@ const SOURCE_NOTES: Record<string, string> = {
       <section class="section section--alt">
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">The money</span>
-            <h2>Which jobs pay the most?</h2>
-            <p class="lede">
-              Average yearly pay for jobs with 200 or more workers in{' '}
-              {state.name}.
-            </p>
+            <span class="eyebrow">{t('sp.pay.eyebrow', lang)}</span>
+            <h2>{t('sp.pay.h2', lang)}</h2>
+            <p class="lede">{t('sp.pay.lede', lang, { state: state.name })}</p>
           </div>
           <div class="card">
             <Bars
@@ -371,13 +343,13 @@ const SOURCE_NOTES: Record<string, string> = {
                 color: state.color,
                 href: `/careers/${o.soc}`,
               }))}
-              label={`Highest paying STEM jobs in ${state.name}`}
+              label={t('sp.pay.label', lang, { state: state.name })}
               format="currency"
             />
             <p class="source-note">
-              Average pay is pulled up a little by the highest earners, so the
-              <a href={withBase('/careers')}>career pages</a> show the middle
-              salary too.
+              {t('sp.pay.note1', lang)}{' '}
+              <a href={withBase('/careers')}>{t('sp.pay.note2', lang)}</a>{' '}
+              {t('sp.pay.note3', lang)}
             </p>
           </div>
         </div>
@@ -387,12 +359,9 @@ const SOURCE_NOTES: Record<string, string> = {
         <section class="section">
           <div class="wrap">
             <div class="section-head">
-              <span class="eyebrow">Where they work</span>
-              <h2>Which cities have the most STEM jobs?</h2>
-              <p class="lede">
-                A metro area is a city plus everything around it that shares the
-                same job market. Some of them cross state lines.
-              </p>
+              <span class="eyebrow">{t('sp.metro.eyebrow', lang)}</span>
+              <h2>{t('sp.metro.h2', lang)}</h2>
+              <p class="lede">{t('sp.metro.lede', lang)}</p>
             </div>
             <div class="card">
               <Bars
@@ -401,15 +370,15 @@ const SOURCE_NOTES: Record<string, string> = {
                   value: m.value,
                   color: state.color,
                 }))}
-                label={`STEM employment by metro area in ${state.name}`}
-                suffix=" people"
+                label={t('sp.metro.label', lang, { state: state.name })}
+                suffix={t('sp.suffix.people', lang)}
               />
               <ul class="metro-shared">
                 {metroBars
                   .filter((m) => m.shared.length > 0)
                   .map((m) => (
                     <li>
-                      <strong>{m.label}</strong> also covers {m.shared.join(', ')}
+                      <strong>{m.label}</strong> {t('sp.metro.also', lang)} {m.shared.join(', ')}
                     </li>
                   ))}
               </ul>
@@ -422,12 +391,9 @@ const SOURCE_NOTES: Record<string, string> = {
         <section class="section section--alt">
           <div class="wrap">
             <div class="section-head">
-              <span class="eyebrow">What is growing</span>
-              <h2>Which STEM jobs are on the way up?</h2>
-              <p class="lede">
-                How much each job is predicted to grow, nationwide, between 2025
-                and 2035.
-              </p>
+              <span class="eyebrow">{t('sp.growth.eyebrow', lang)}</span>
+              <h2>{t('sp.growth.h2', lang)}</h2>
+              <p class="lede">{t('sp.growth.lede', lang)}</p>
             </div>
             <div class="card">
               <Bars
@@ -437,13 +403,10 @@ const SOURCE_NOTES: Record<string, string> = {
                   display: formatGrowth(o.growth),
                   color: 'var(--c-good)',
                 }))}
-                label={`Fastest growing STEM jobs for ${state.name}`}
+                label={t('sp.growth.label', lang, { state: state.name })}
                 format="percent"
               />
-              <p class="source-note">
-                A prediction, not a promise. The Bureau of Labor Statistics
-                publishes these every year.
-              </p>
+              <p class="source-note">{t('sp.growth.note', lang)}</p>
             </div>
           </div>
         </section>
@@ -452,11 +415,9 @@ const SOURCE_NOTES: Record<string, string> = {
       <section class="section">
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Go deeper</span>
-            <h2>Pick a field and see the jobs inside it</h2>
-            <p class="lede">
-              Every job, what it involves, and what it pays in {state.name}.
-            </p>
+            <span class="eyebrow">{t('sp.deeper.eyebrow', lang)}</span>
+            <h2>{t('sp.deeper.h2', lang)}</h2>
+            <p class="lede">{t('sp.deeper.lede', lang, { state: state.name })}</p>
           </div>
           <div class="grid grid--3">
             {categoryGroups.map((g) => (
@@ -464,9 +425,9 @@ const SOURCE_NOTES: Record<string, string> = {
                 <div class="cat__icon" aria-hidden="true">
                   {g.category.icon}
                 </div>
-                <h3 class="card__title">{g.category.label}</h3>
+                <h3 class="card__title">{catLabel(g.category.id, g.category.label)}</h3>
                 <p class="muted">
-                  {formatNumber(g.employment)} people work in this field in{' '}
+                  {formatNumber(g.employment)} {t('sp.deeper.workIn', lang)}{' '}
                   {state.abbr}.
                 </p>
                 <ul class="career-links">

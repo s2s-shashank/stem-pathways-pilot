@@ -1,23 +1,32 @@
 ---
 import { withBase } from '../lib/url';
 import Base from '../layouts/Base.astro';
+import { t, type Lang } from '../i18n';
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = 'en' } = Astro.props;
+
+const title = lang === 'es' ? 'Página no encontrada' : 'Page not found';
+const description =
+  lang === 'es'
+    ? 'Esa página no existe en STEM Pathways.'
+    : 'That page does not exist on STEM Pathways.';
 ---
 
-<Base
-  title="Page not found"
-  description="That page does not exist on STEM Pathways."
->
+<Base title={title} description={description} lang={lang}>
   <section class="section">
     <div class="wrap wrap--narrow">
-      <h1>Hmm, that page isn't here</h1>
+      <h1>{t('404.h1', lang)}</h1>
       <p class="lede">
-        It may have moved, or the link might be old. If you followed an old
-        link, everything now lives at
-        <strong>s2s-shashank.github.io/stem-jobs</strong>.
+        {t('404.lede', lang)}
+        {' '}<strong>s2s-shashank.github.io/stem-jobs</strong>.
       </p>
       <p>
-        <a class="btn btn--primary" href={withBase("/")}>Back to the start</a>
-        <a class="btn btn--outline" href={withBase("/compare")}>Compare states</a>
+        <a class="btn btn--primary" href={withBase("/")}>{t('404.home', lang)}</a>
+        <a class="btn btn--outline" href={withBase("/compare")}>{t('404.compare', lang)}</a>
       </p>
     </div>
   </section>

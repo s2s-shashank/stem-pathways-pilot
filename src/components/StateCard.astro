@@ -1,6 +1,7 @@
 ---
 import { withBase } from '../lib/url';
 import type { StateMeta } from '../data/states';
+import { t, type Lang } from '../i18n';
 
 interface Props {
   state: StateMeta;
@@ -8,9 +9,10 @@ interface Props {
   headline?: string;
   headlineNote?: string;
   available?: boolean;
+  lang?: Lang;
 }
 
-const { state, headline, headlineNote, available = true } = Astro.props;
+const { state, headline, headlineNote, available = true, lang = 'en' } = Astro.props;
 ---
 
 <article class="card card--link state-card" style={`--accent:${state.color}`}>
@@ -18,7 +20,7 @@ const { state, headline, headlineNote, available = true } = Astro.props;
   <h3 class="card__title">
     <a href={withBase(`/${state.code}`)}>{state.name}</a>
   </h3>
-  <p class="muted">{state.blurb}</p>
+  <p class="muted">{t(`state.${state.code}.blurb` as const, lang)}</p>
   {
     headline ? (
       <p class="state-card__headline">
@@ -26,11 +28,15 @@ const { state, headline, headlineNote, available = true } = Astro.props;
         {headlineNote && <span class="muted"> {headlineNote}</span>}
       </p>
     ) : (
-      <p class="muted small">Data loading…</p>
+      <p class="muted small">{t('stateCard.loading', lang)}</p>
     )
   }
   <span class="state-card__cta">
-    {available ? `Explore ${state.short} STEM jobs →` : `Coming soon →`}
+    {available
+      ? lang === 'es'
+        ? `Explora los empleos STEM de ${state.short} →`
+        : `Explore ${state.short} STEM jobs →`
+      : t('stateCard.coming', lang)}
   </span>
 </article>
 

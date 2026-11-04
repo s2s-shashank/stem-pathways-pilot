@@ -2,6 +2,13 @@
 import { withBase } from '../lib/url';
 import Base from '../layouts/Base.astro';
 import { allStateData } from '../lib/data';
+import { t, type Lang } from '../i18n';
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = 'en' } = Astro.props;
 
 interface QuizItem {
   soc: string;
@@ -43,22 +50,19 @@ for (let i = 0; i + 2 < items.length && questions.length < 5; i += 3) {
 ---
 
 <Base
-  title="Guess the salary"
-  description="A quick quiz: which STEM career pays the most? Test your instincts with real salary data."
+  title={t('quiz.h1', lang)}
+  description={lang === 'es'
+    ? 'Una prueba rápida: ¿qué carrera STEM paga más? Pon a prueba tu instinto con datos salariales reales.'
+    : 'A quick quiz: which STEM career pays the most? Test your instincts with real salary data.'}
+  lang={lang}
 >
   <section class="hero">
     <div class="wrap">
-      <span class="hero__tag"><span aria-hidden="true">●</span> Quiz</span>
-      <h1>Guess the salary</h1>
-      <p class="lede">
-        Three STEM jobs. Only one of them pays the most. How many can you get?
-        The numbers are real - the middle salary for each job, straight from the
-        Bureau of Labor Statistics.
-      </p>
-      <p class="small muted">
-        There are five questions. Click the job you think pays the most, and
-        you will find out straight away.
-      </p>
+      <span class="hero__tag"><span aria-hidden="true">●</span> {t('quiz.tag', lang)}</span>
+      <h1>{t('quiz.h1', lang)}</h1>
+      <p class="lede">{t('quiz.lede', lang)}</p>
+      <p class="small muted">{t('quiz.small', lang)}</p>
+      {lang === 'es' && <p class="stamp">{t('es.notice', lang)}</p>}
     </div>
   </section>
 
@@ -66,32 +70,32 @@ for (let i = 0; i + 2 < items.length && questions.length < 5; i += 3) {
     <div class="wrap wrap--narrow">
       {
         questions.length === 0 ? (
-          <p class="lede">The quiz is being loaded with new questions — check back soon.</p>
+          <p class="lede">{t('quiz.loading', lang)}</p>
         ) : (
-          <div class="quiz" id="quiz">
+          <div class="quiz" id="quiz" data-lang={lang}>
             <div class="quiz__progress" aria-hidden="true">
               <span class="quiz__progress-fill" id="q-fill" />
             </div>
 
             <div class="quiz__top">
               <span class="quiz__count">
-                Question <strong id="q-num">1</strong> of {questions.length}
+                {t('quiz.question', lang)} <strong id="q-num">1</strong> {t('quiz.of', lang)} {questions.length}
               </span>
               <span class="quiz__score">
-                Score <strong id="q-score">0</strong>
+                {t('quiz.score', lang)} <strong id="q-score">0</strong>
               </span>
             </div>
 
-            <p class="quiz__ask" id="q-ask">Which one pays the most?</p>
+            <p class="quiz__ask" id="q-ask">{t('quiz.ask', lang)}</p>
             <div class="quiz__options" id="q-options"></div>
             <p class="quiz__feedback" id="q-feedback" role="status" aria-live="polite" />
 
             <div class="quiz__final" id="q-final" hidden>
               <div class="quiz__final-body">
-                <p class="quiz__final-kicker">Your result</p>
+                <p class="quiz__final-kicker">{t('quiz.result', lang)}</p>
                 <p class="quiz__final-text" id="q-final-text" />
               </div>
-              <a class="btn btn--primary" href={withBase("/quiz")}>Play again</a>
+              <a class="btn btn--primary" href={withBase("/quiz")}>{t('quiz.again', lang)}</a>
             </div>
           </div>
         )
@@ -110,6 +114,7 @@ for (let i = 0; i + 2 < items.length && questions.length < 5; i += 3) {
   const root = document.getElementById('quiz');
   const dataEl = document.getElementById('quiz-data');
   if (root && dataEl) {
+    const es = (root as HTMLElement).dataset.lang === 'es';
     const questions = JSON.parse(dataEl.textContent || '[]');
     const LETTERS = ['A', 'B', 'C'];
     let index = 0;
@@ -186,16 +191,16 @@ for (let i = 0; i + 2 < items.length && questions.length < 5; i += 3) {
       if (correct) {
         score += 1;
         feedbackEl.classList.add('is-good');
-        feedbackEl.textContent = `Correct! The middle salary for ${item.title} is ${money(
-          item.median,
-        )} a year.`;
+        feedbackEl.textContent = es
+          ? `¡Correcto! El salario del medio de ${item.title} es ${money(item.median)} al año.`
+          : `Correct! The middle salary for ${item.title} is ${money(item.median)} a year.`;
       } else {
         btn.classList.add('is-wrong');
         btn.querySelector('.quiz__mark')!.textContent = '✕';
         feedbackEl.classList.add('is-bad');
-        feedbackEl.textContent = `Not quite. The middle salary for ${best.title} is ${money(
-          best.median,
-        )} a year — ${money(best.median - item.median)} more.`;
+        feedbackEl.textContent = es
+          ? `Casi. El salario del medio de ${best.title} es ${money(best.median)} al año: ${money(best.median - item.median)} más.`
+          : `Not quite. The middle salary for ${best.title} is ${money(best.median)} a year — ${money(best.median - item.median)} more.`;
       }
 
       scoreEl.textContent = String(score);
@@ -204,11 +209,19 @@ for (let i = 0; i + 2 < items.length && questions.length < 5; i += 3) {
         if (index >= questions.length) {
           const msg =
             score === questions.length
-              ? 'Perfect score. You really know your STEM salaries.'
+              ? es
+                ? 'Puntuación perfecta. Realmente conoces los salarios STEM.'
+                : 'Perfect score. You really know your STEM salaries.'
               : score >= questions.length - 1
-                ? 'So close! One more round?'
-                : 'Nice try — now you know more than you did before.';
-          finalText.textContent = `You scored ${score} out of ${questions.length}. ${msg}`;
+                ? es
+                  ? '¡Casi! ¿Otra ronda?'
+                  : 'So close! One more round?'
+                : es
+                  ? 'Buen intento: ahora sabes más que antes.'
+                  : 'Nice try — now you know more than you did before.';
+          finalText.textContent = es
+            ? `Sacaste ${score} de ${questions.length}. ${msg}`
+            : `You scored ${score} out of ${questions.length}. ${msg}`;
           finalEl.hidden = false;
           optionsEl.innerHTML = '';
           feedbackEl.className = 'quiz__feedback';

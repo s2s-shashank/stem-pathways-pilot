@@ -103,11 +103,11 @@ export function lastUpdated(): string | undefined {
   return stamps.at(-1);
 }
 
-export function formatDate(iso?: string): string {
+export function formatDate(iso?: string, lang: 'en' | 'es' = 'en'): string {
   if (!iso) return 'not yet';
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return 'not yet';
-  return d.toLocaleDateString('en-US', {
+  return d.toLocaleDateString(lang === 'es' ? 'es' : 'en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -160,15 +160,15 @@ export function translatePay(annual?: number): PayTranslation | undefined {
 
   let comparison: string;
   if (hourly >= 60) {
-    comparison = 'about the price of a nice dinner out';
+    comparison = 'pay.c1';
   } else if (hourly >= 40) {
-    comparison = 'about the price of a movie ticket and a snack';
+    comparison = 'pay.c2';
   } else if (hourly >= 25) {
-    comparison = 'about the price of a concert ticket';
+    comparison = 'pay.c3';
   } else if (hourly >= 18) {
-    comparison = 'about the price of a large pizza';
+    comparison = 'pay.c4';
   } else {
-    comparison = 'about the price of a fast-food meal';
+    comparison = 'pay.c5';
   }
 
   return {

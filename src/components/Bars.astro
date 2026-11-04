@@ -44,9 +44,11 @@ const fmt = (n: number) => {
   return n.toLocaleString('en-US', { maximumFractionDigits: 0 });
 };
 
-/** "1 job" instead of "1 jobs" (and never "1 peoples") */
+/** "1 job" instead of "1 jobs" (and never "1 peoples"); Spanish has no plural 's'. */
 const plural = (n: number, word: string) => {
-  if (word === 'people') return word;
+  if (word === 'people' || word === 'personas') return word;
+  if (/[aeiouáéíóú]$/.test(word)) return n === 1 ? word : `${word}s`; // oferta -> ofertas
+  if (word.endsWith('z')) return n === 1 ? word : `${word.slice(0, -1)}ces`;
   return `${word}${n === 1 ? '' : 's'}`;
 };
 ---

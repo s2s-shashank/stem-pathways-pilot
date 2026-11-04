@@ -1,116 +1,79 @@
 ---
 import Base from '../layouts/Base.astro';
 import { withBase } from '../lib/url';
+import { t, type Lang } from '../i18n';
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = 'en' } = Astro.props;
+
+const title = lang === 'es' ? 'Quiénes somos' : 'About Us';
+const description =
+  lang === 'es'
+    ? 'Students 2 Science (S2S) inspira y empodera a los estudiantes mediante el aprendizaje práctico de STEM. Conoce quiénes somos, qué hacemos y por qué existe este sitio.'
+    : 'Students 2 Science (S2S) inspires and empowers students through hands-on STEM learning. Learn who we are, what we do, and why this site exists.';
 ---
 
-<Base
-  title="About Us"
-  description="Students 2 Science (S2S) inspires and empowers students through hands-on STEM learning. Learn who we are, what we do, and why this site exists."
->
+<Base title={title} description={description} lang={lang}>
   <section class="hero">
     <div class="wrap">
       <span class="hero__tag">
-        <span aria-hidden="true">●</span> About Us
+        <span aria-hidden="true">●</span> {t('about.tag', lang)}
       </span>
-      <h1>We empower students to succeed with STEM</h1>
-      <p class="lede">
-        Students 2 Science (S2S) is a New Jersey nonprofit that brings real
-        science, real labs and real scientists to students - many of them from
-        communities that have never had that chance.
-      </p>
+      <h1>{t('about.h1', lang)}</h1>
+      <p class="lede">{t('about.lede', lang)}</p>
     </div>
   </section>
 
   <section class="section">
     <div class="wrap wrap--narrow">
-      <h2>Our mission</h2>
-      <p class="lede">
-        To inspire and empower all students through hands-on learning
-        experiences, encouraging them to pursue careers in science,
-        technology, engineering and math - and in doing so, to strengthen the
-        future workforce.
-      </p>
+      <h2>{t('about.mission.h2', lang)}</h2>
+      <p class="lede">{t('about.mission.p', lang)}</p>
 
-      <h2>Our vision</h2>
-      <p class="lede">
-        Every student in New Jersey should have access to STEM learning
-        opportunities and career pathways. That means:
-      </p>
+      <h2>{t('about.vision.h2', lang)}</h2>
+      <p class="lede">{t('about.vision.p', lang)}</p>
       <ul class="muted">
-        <li>Expanding our programs to reach 450,000 students every year.</li>
-        <li>Operating 3-5 Technology Centers in the areas that need them most.</li>
-        <li>
-          Building curriculum that matches what the state's future workforce
-          will actually require.
-        </li>
-        <li>
-          Giving students the room to explore and define their own STEM career
-          and education pathways.
-        </li>
+        <li>{t('about.vision.1', lang)}</li>
+        <li>{t('about.vision.2', lang)}</li>
+        <li>{t('about.vision.3', lang)}</li>
+        <li>{t('about.vision.4', lang)}</li>
       </ul>
 
-      <h2>Our impact</h2>
-      <p>
-        Since 2009, hands-on STEM experiences, innovative programming,
-        state-of-the-art Technology Centers and direct work with professional
-        scientists have reached students, communities and the economy:
-      </p>
+      <h2>{t('about.impact.h2', lang)}</h2>
+      <p>{t('about.impact.p', lang)}</p>
       <div class="impact-grid">
         <article class="card card--flat">
-          <h3 class="card__title">Individuals</h3>
-          <p class="muted">
-            More than 500,000 students in New Jersey need education support,
-            especially in STEM. S2S opens that door: to date, our programs have
-            served over 300,000 students with immersive, hands-on experiences
-            using real laboratory instrumentation.
-          </p>
+          <h3 class="card__title">{t('about.impact1.h3', lang)}</h3>
+          <p class="muted">{t('about.impact1.p', lang)}</p>
         </article>
         <article class="card card--flat">
-          <h3 class="card__title">Communities</h3>
-          <p class="muted">
-            Many of our students come from communities that lack the experts,
-            resources and facilities high-quality STEM education needs. S2S
-            gives them critical skills and mentoring - the kind that can lift
-            an entire community.
-          </p>
+          <h3 class="card__title">{t('about.impact2.h3', lang)}</h3>
+          <p class="muted">{t('about.impact2.p', lang)}</p>
         </article>
         <article class="card card--flat">
-          <h3 class="card__title">The economy</h3>
-          <p class="muted">
-            The Bureau of Labor Statistics projects STEM jobs will grow 10.4%
-            between 2023 and 2033 - nearly three times faster than non-STEM
-            jobs. S2S is preparing students to fill those well-paid roles.
-          </p>
+          <h3 class="card__title">{t('about.impact3.h3', lang)}</h3>
+          <p class="muted">{t('about.impact3.p', lang)}</p>
         </article>
       </div>
 
-      <h2>Achievement highlights</h2>
+      <h2>{t('about.ach.h2', lang)}</h2>
       <ul class="muted">
-        <li>Engaged over 350,000 students in S2S programs.</li>
-        <li>Established two state-of-the-art Technology Centers.</li>
-        <li>
-          Created a formal partnership with Newark Public Schools, New
-          Jersey's largest school district.
-        </li>
-        <li>
-          Partnered with more than 200 schools and community organizations
-          across New Jersey and beyond.
-        </li>
-        <li>
-          Involved over 1,000 corporate, higher education and community
-          volunteers.
-        </li>
+        <li>{t('about.ach.1', lang)}</li>
+        <li>{t('about.ach.2', lang)}</li>
+        <li>{t('about.ach.3', lang)}</li>
+        <li>{t('about.ach.4', lang)}</li>
+        <li>{t('about.ach.5', lang)}</li>
       </ul>
 
-      <h2>About this site</h2>
+      <h2>{t('about.site.h2', lang)}</h2>
       <p class="lede">
-        STEM Pathways is built by Students 2 Science. Every salary, job count
-        and growth figure comes from official government sources - see
-        <a href={withBase('/sources')}>where the data comes from</a>. Want to
-        see how a lab experiment connects to a real career? Start with
-        <a href={withBase('/labs2life')}>Labs2Life</a>. Curious about our work
-        with high school students? Read about the
-        <a href={withBase('/cap-program')}>Career Advancement Program</a>.
+        {t('about.site.p1', lang)}
+        {t('about.site.p2', lang)}
+        <a href={withBase('/sources')}>{t('about.site.sources', lang)}</a>{t('about.site.p3', lang)}
+        <a href={withBase('/labs2life')}>Labs2Life</a>{t('about.site.p4', lang)}
+        <a href={withBase('/cap-program')}>{t('footer.cap2', lang)}</a>.
       </p>
     </div>
   </section>

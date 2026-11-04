@@ -3,18 +3,21 @@
  * A small "?" that explains a word or number, using <details> so it works
  * with no JavaScript and is keyboard and screen-reader friendly.
  */
+import { t, type Lang } from '../i18n';
+
 interface Props {
   /** Short label for the button. */
   label?: string;
   /** The explanation. */
   text: string;
+  lang?: Lang;
 }
 
-const { label = '?', text } = Astro.props;
+const { label = '?', text, lang = 'en' } = Astro.props;
 ---
 
 <details class="explain">
-  <summary aria-label={`What does this mean? ${text}`}>{label}</summary>
+  <summary aria-label={`${t('explain.aria', lang)} ${text}`}>{label}</summary>
   <div class="explain__body" role="note">{text}</div>
 </details>
 

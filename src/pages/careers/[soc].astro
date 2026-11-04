@@ -13,16 +13,22 @@ import {
 } from '../../lib/data';
 import { describe } from '../../lib/descriptions';
 import { CATEGORY_MAP, STATES } from '../../data/states';
+import { t, CATEGORY_LABELS_ES, type Lang } from '../../i18n';
+
+interface Props {
+  soc: string;
+  lang?: Lang;
+}
 
 export async function getStaticPaths() {
   const socs = new Set<string>();
   for (const state of allStateData()) {
     for (const o of state.occupations) socs.add(o.soc);
   }
-  return [...socs].map((soc) => ({ params: { soc } }));
+  return [...socs].map((soc) => ({ params: { soc }, props: { soc } }));
 }
 
-const { soc } = Astro.params;
+const { soc, lang = 'en' } = Astro.props;
 
 const perState = STATES.map((s) => {
   const data = allStateData().find((d) => d.state === s.code);
@@ -31,12 +37,17 @@ const perState = STATES.map((s) => {
 }).filter((r) => r.occ);
 
 if (perState.length === 0) {
-  return Astro.redirect('/careers');
+  return Astro.redirect(lang === 'es' ? '/es/careers' : '/careers');
 }
 
 const primary = perState[0].occ!;
 const title = primary.title;
 const category = CATEGORY_MAP[primary.category];
+const catName = category
+  ? lang === 'es'
+    ? (CATEGORY_LABELS_ES[category.id] ?? category.label)
+    : category.label
+  : 'STEM';
 const job = describe(soc, primary.category);
 const bestPay = perState.reduce((best, row) =>
   (row.occ!.medianWage ?? 0) > (best.occ!.medianWage ?? 0) ? row : best,
@@ -55,16 +66,18 @@ const busiest = perState.reduce((best, row) =>
 ---
 
 <Base
-  title={`${title}: what it's like, what it pays`}
-  description={`${title} in New Jersey, New York and Pennsylvania: what the job involves, what it pays, how many openings there are, and what to study.`}
+  title={`${title}: ${t('cd.titleSuffix', lang)}`}
+  description={t('cd.description', lang, { title })}
+  lang={lang}
 >
   <section class="hero">
     <div class="wrap">
       <span class="hero__tag">
-        <span aria-hidden="true">{category?.icon ?? '⚗️'}</span> {category?.label ?? 'STEM'}
+        <span aria-hidden="true">{category?.icon ?? '⚗️'}</span> {catName}
       </span>
       <h1>{title}</h1>
       <p class="lede">{job.what}</p>
+      {lang === 'es' && <p class="stamp">{t('es.notice', lang)}</p>}
     </div>
   </section>
 
@@ -72,32 +85,34 @@ const busiest = perState.reduce((best, row) =>
     <div class="wrap">
       <div class="grid grid--2 job-intro">
         <article class="card card--flat">
-          <h2 class="card__title">A typical day</h2>
+          <h2 class="card__title">{t('cd.day', lang)}</h2>
           <p class="muted">{job.day}</p>
         </article>
         <article class="card card--flat">
-          <h2 class="card__title">What to study</h2>
+          <h2 class="card__title">{t('cd.study', lang)}</h2>
           <p class="muted">{job.school}</p>
           <p class="source-note">
             {primary.education
-              ? `Most people in this job have a ${primary.education.charAt(0).toLowerCase()}${primary.education.slice(1)}.`
-              : 'Most paths start with a certificate, apprenticeship or two-year degree.'}
+              ? t('cd.education', lang, {
+                  education: `${primary.education.charAt(0).toLowerCase()}${primary.education.slice(1)}`,
+                })
+              : t('cd.educationNone', lang)}
           </p>
         </article>
       </div>
 
-      <h2 class="section-title">The numbers</h2>
+      <h2 class="section-title">{t('cd.numbers', lang)}</h2>
       <div class="table-wrap">
         <table>
-          <caption class="sr-only">{title} in each state</caption>
+          <caption class="sr-only">{t('cd.caption', lang, { title })}</caption>
           <thead>
             <tr>
-              <th scope="col">State</th>
-              <th scope="col" class="num">People doing this job</th>
-              <th scope="col" class="num">Middle pay</th>
-              <th scope="col" class="num">Starting pay</th>
-              <th scope="col" class="num">Jobs open now</th>
-              <th scope="col" class="num">Is it growing?</th>
+              <th scope="col">{t('cd.colState', lang)}</th>
+              <th scope="col" class="num">{t('cd.colPeople', lang)}</th>
+              <th scope="col" class="num">{t('cd.colMedian', lang)}</th>
+              <th scope="col" class="num">{t('cd.colEntry', lang)}</th>
+              <th scope="col" class="num">{t('cd.colOpen', lang)}</th>
+              <th scope="col" class="num">{t('cd.colGrowth', lang)}</th>
             </tr>
           </thead>
           <tbody>
@@ -122,36 +137,34 @@ const busiest = perState.reduce((best, row) =>
           </tbody>
         </table>
         <p class="source-note table-note">
-          <strong>Middle pay</strong> is what the person in the middle earns -
-          half earn more, half earn less.
+          <strong>{t('cd.colMedian', lang)}</strong> {t('cd.median1', lang)}
           <Explain
             label="?"
-            text="The median is the middle salary. It is more useful than the average, because a few very high salaries can drag an average up and make a job look better than it is for most people."
+            text={t('cd.medianExplain', lang)}
+            lang={lang}
           />
           <br />
-          <strong>Jobs open now</strong> counts private-sector job postings for
-          this exact job in the last 30 days, within 50 miles of the state.
+          <strong>{t('cd.colOpen', lang)}</strong> {t('cd.open1', lang)}
           <Explain
             label="?"
-            text="These come from CareerOneStop, the federal site that collects job postings from thousands of private employers. A posting is one opening - it does not mean the job will last forever."
+            text={t('cd.openExplain', lang)}
+            lang={lang}
           />
           <br />
-          <strong>Is it growing?</strong> is the Bureau of Labor Statistics
-          prediction for how many more jobs there will be by 2035.
+          <strong>{t('cd.colGrowth', lang)}</strong> {t('cd.growth1', lang)}
         </p>
       </div>
 
       <div class="grid grid--2 two-col">
         <div>
-          <h2 class="section-title">What that salary feels like</h2>
-          <PayTranslation annual={bestPay.occ!.medianWage} label="a year" />
+          <h2 class="section-title">{t('cd.feels', lang)}</h2>
+          <PayTranslation annual={bestPay.occ!.medianWage} lang={lang} />
           <p class="source-note">
-            Based on the middle pay in {bestPay.state.name}, before taxes. Real
-            pay depends on experience, overtime and where you live.
+            {t('cd.feels.note', lang, { state: bestPay.state.name })}
           </p>
         </div>
         <div>
-          <h2 class="section-title">Where the pay is highest</h2>
+          <h2 class="section-title">{t('cd.highest', lang)}</h2>
           <div class="card">
             <Bars
               items={perState.map((row) => ({
@@ -159,7 +172,7 @@ const busiest = perState.reduce((best, row) =>
                 value: row.occ!.medianWage ?? 0,
                 color: row.state.color,
               }))}
-              label={`Middle pay for ${title} in each state`}
+              label={t('cd.highest.label', lang, { title })}
               format="currency"
             />
           </div>
@@ -168,36 +181,34 @@ const busiest = perState.reduce((best, row) =>
 
       <div class="grid grid--2 two-col">
         <article class="card card--flat">
-          <h2 class="card__title">How many people already do this?</h2>
+          <h2 class="card__title">{t('cd.howmany', lang)}</h2>
           <p class="muted">
-            In {busiest.state.name}, about{' '}
-            <strong>{formatNumber(busiest.occ!.employment)}</strong> people work
-            as {title.toLowerCase()}. Across all three states, the job is done by
-            roughly{' '}
-            <strong>
-              {formatNumber(
+            {t('cd.howmany.p', lang, {
+              state: busiest.state.name,
+              count: formatNumber(busiest.occ!.employment),
+              job: title.toLowerCase(),
+              total: formatNumber(
                 perState.reduce((sum, row) => sum + (row.occ!.employment ?? 0), 0),
-              )}
-            </strong>{' '}
-            people.
+              ),
+            })}
           </p>
         </article>
 
         <article class="card card--flat">
-          <h2 class="card__title">Good questions to ask</h2>
+          <h2 class="card__title">{t('cd.questions', lang)}</h2>
           <ul class="muted">
-            <li>Do I want to work with my hands, with data, or with people?</li>
-            <li>Is there a local apprenticeship or certificate program?</li>
-            <li>Which classes should I sign up for next year?</li>
-            <li>Who is already working in this job near me - could I ask them?</li>
+            <li>{t('cd.q1', lang)}</li>
+            <li>{t('cd.q2', lang)}</li>
+            <li>{t('cd.q3', lang)}</li>
+            <li>{t('cd.q4', lang)}</li>
           </ul>
         </article>
       </div>
 
       <p class="source-note final-note">
-        Data as of {formatDate(perState[0].data?.asOf)}. Employment and pay come
-        from the Bureau of Labor Statistics. <a href={withBase('/sources')}>See all sources</a>
-        · <a href={withBase('/glossary')}>New to these words? Read the glossary</a>
+        {t('cd.dataAsOf', lang)} {formatDate(perState[0].data?.asOf, lang)}.{' '}
+        {t('cd.bls', lang)} <a href={withBase('/sources')}>{t('cd.sources', lang)}</a>
+        · <a href={withBase('/glossary')}>{t('cd.glossary', lang)}</a>
       </p>
     </div>
   </section>

@@ -1,100 +1,74 @@
 ---
 import Base from '../layouts/Base.astro';
 import { withBase } from '../lib/url';
+import { t, type Lang } from '../i18n';
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = 'en' } = Astro.props;
+
+const title = lang === 'es' ? 'Programa CAP' : 'CAP Program';
+const description =
+  lang === 'es'
+    ? 'El Programa de Avance Profesional (CAP) ofrece a los estudiantes de preparatoria educación, formación laboral y exploración de carreras: pasantías, mentoría y formación de preparación profesional.'
+    : 'The Career Advancement Program (CAP) gives high school students education, job training and career exploration - internships, mentoring and career-readiness training.';
 ---
 
-<Base
-  title="CAP Program"
-  description="The Career Advancement Program (CAP) gives high school students education, job training and career exploration - internships, mentoring and career-readiness training."
->
+<Base title={title} description={description} lang={lang}>
   <section class="hero">
     <div class="wrap">
       <span class="hero__tag">
-        <span aria-hidden="true">●</span> CAP Program
+        <span aria-hidden="true">●</span> {t('cap.tag', lang)}
       </span>
-      <h1>Career Advancement Program (CAP)</h1>
-      <p class="lede">
-        Education, job training and career exploration for high school
-        students - so you can find your direction before the real world
-        starts asking for one.
-      </p>
+      <h1>{t('cap.h1', lang)}</h1>
+      <p class="lede">{t('cap.lede', lang)}</p>
     </div>
   </section>
 
   <section class="section">
     <div class="wrap wrap--narrow">
-      <h2>What CAP is</h2>
-      <p>
-        CAP supports students in grades 10-12 from our partner schools and
-        districts with guided exploration of what comes after high school and
-        hands-on STEM career development.
-      </p>
-      <p class="muted">
-        Through partnerships with schools, corporations and community
-        stakeholders, CAP connects students with industry experts, real
-        experiences and individualized coaching - while engaging professionals
-        in developing the future workforce. The focus is career readiness,
-        professional development and STEM identity-building: the skills,
-        exposure and connections needed to pursue rewarding educational and
-        career pathways in STEM.
-      </p>
+      <h2>{t('cap.what.h2', lang)}</h2>
+      <p>{t('cap.what.p1', lang)}</p>
+      <p class="muted">{t('cap.what.p2', lang)}</p>
 
-      <h2>Signature programs</h2>
+      <h2>{t('cap.sig.h2', lang)}</h2>
       <div class="cap-grid">
         <article class="card card--flat">
-          <h3 class="card__title">ISAAC Internship</h3>
-          <p class="muted">
-            Project-based internships for high school (16+) and college
-            students, working alongside S2S staff and industry professionals.
-            Interns get career-readiness training, resume and interview
-            coaching, and direct exposure to STEM professionals and hiring
-            managers.
-          </p>
+          <h3 class="card__title">{t('cap.sig1.h3', lang)}</h3>
+          <p class="muted">{t('cap.sig1.p', lang)}</p>
         </article>
         <article class="card card--flat">
-          <h3 class="card__title">STEM Pathways Mentoring (STEMPath)</h3>
-          <p class="muted">
-            Students in grades 11-12 take part in one-on-one, 2:1 and group
-            mentoring with relatable STEM professionals. These connections
-            help you explore career pathways, expand your professional
-            network, and get ready for what comes next.
-          </p>
+          <h3 class="card__title">{t('cap.sig2.h3', lang)}</h3>
+          <p class="muted">{t('cap.sig2.p', lang)}</p>
         </article>
       </div>
 
-      <h2>More inside CAP</h2>
+      <h2>{t('cap.more.h2', lang)}</h2>
       <ul class="cap-list">
         <li>
-          <strong>Career exploration</strong> - workplace tours, employee
-          meet-and-greets, career panels and STEM professional engagement.
+          <strong>{t('cap.more.1a', lang)}</strong>{t('cap.more.1b', lang)}
         </li>
         <li>
-          <strong>Career-readiness training</strong> - resume development,
-          mock interviews, employment preparation and workplace success
-          strategies.
+          <strong>{t('cap.more.2a', lang)}</strong>{t('cap.more.2b', lang)}
         </li>
         <li>
-          <strong>Professional and soft skills</strong> - communication,
-          teamwork, leadership, professionalism and workplace effectiveness.
-        </li>
-        <li>
-          <strong>Industry-aligned learning</strong> - certifications,
-          specialized training, workforce-readiness resources and
-          career-development pathways.
+          <strong>{t('cap.more.3a', lang)}</strong>{t('cap.more.3b', lang)}
         </li>
       </ul>
 
-      <h2>Corporations</h2>
+      <h2>{t('cap.corp.h2', lang)}</h2>
       <p>
-        If your company wants to be part of CAP,
-        <a href="mailto:CAP@students2science.org">email CAP@students2science.org</a>.
+        {t('cap.corp.p', lang)}
+        <a href="mailto:CAP@students2science.org">{t('cap.corp.email', lang)}</a>.
       </p>
 
       <p class="source-note">
-        Testing out careers on paper is one thing - meeting the people who do
-        them is another. Try <a href={withBase('/labs2life')}>Labs2Life</a> to
-        see how lab experiments connect to real jobs, or
-        <a href={withBase('/careers')}>browse every career</a> on this site.
+        {t('cap.note.1', lang)} <a href={withBase('/labs2life')}>Labs2Life</a>{' '}
+        {t('cap.note.2', lang)}{' '}
+        <a href={withBase('/careers')}>{t('cap.note.3', lang)}</a>{' '}
+        {t('cap.note.4', lang)}
       </p>
     </div>
   </section>

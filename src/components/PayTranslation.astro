@@ -1,12 +1,15 @@
 ---
 import { translatePay } from '../lib/data';
+import { t, type Lang, type I18nKey } from '../i18n';
 
 interface Props {
   annual?: number;
   label?: string;
+  lang?: Lang;
 }
 
-const { annual, label = 'a year' } = Astro.props;
+const { annual, lang = 'en' } = Astro.props;
+const label = Astro.props.label ?? t('pay.year', lang);
 const pay = translatePay(annual);
 // Whole dollars everywhere - cents make the boxes look messy.
 const fmt = (n: number) => '$' + Math.round(n).toLocaleString('en-US');
@@ -16,29 +19,29 @@ const fmt = (n: number) => '$' + Math.round(n).toLocaleString('en-US');
   pay && (
     <div class="pay">
       <p class="pay__lead">
-        <strong>{fmt(annual ?? 0)}</strong> {label} works out to about{' '}
-        <strong>{fmt(pay.hourly)} an hour</strong>, or{' '}
-        <strong>{fmt(pay.weekly)} a week</strong> before taxes.
+        <strong>{fmt(annual ?? 0)}</strong> {label} {t('pay.lead1', lang)}{' '}
+        <strong>{fmt(pay.hourly)} {t('pay.lead2', lang)}</strong>, {t('pay.lead3', lang)}{' '}
+        <strong>{fmt(pay.weekly)} {t('pay.lead4', lang)}</strong>
       </p>
       <div class="pay__grid">
         <div class="pay__cell">
           <span class="pay__value">{fmt(pay.hourly)}</span>
-          <span class="pay__label">per hour</span>
+          <span class="pay__label">{t('pay.perHour', lang)}</span>
         </div>
         <div class="pay__cell">
           <span class="pay__value">{fmt(pay.perDay)}</span>
-          <span class="pay__label">per day</span>
+          <span class="pay__label">{t('pay.perDay', lang)}</span>
         </div>
         <div class="pay__cell">
           <span class="pay__value">{fmt(pay.weekly)}</span>
-          <span class="pay__label">per week</span>
+          <span class="pay__label">{t('pay.perWeek', lang)}</span>
         </div>
         <div class="pay__cell">
           <span class="pay__value">{fmt(pay.monthly)}</span>
-          <span class="pay__label">per month</span>
+          <span class="pay__label">{t('pay.perMonth', lang)}</span>
         </div>
       </div>
-      <p class="pay__note">That is {pay.comparison}.</p>
+      <p class="pay__note">{t('pay.thatIs', lang)} {t(pay.comparison as I18nKey, lang)}.</p>
     </div>
   )
 }

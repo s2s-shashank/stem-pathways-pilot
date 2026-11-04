@@ -7,52 +7,54 @@
  * button in the header is clicked.
  */
 import { withBase } from '../lib/url';
+import { t, type Lang } from '../i18n';
 
 interface Props {
   /** Open by itself on load. Only the home page does this, and only once. */
   autoOpen?: boolean;
+  lang?: Lang;
 }
 
-const { autoOpen = false } = Astro.props;
+const { autoOpen = false, lang = 'en' } = Astro.props;
 
 const sections = [
   {
-    title: 'States',
-    blurb: 'Job counts, pay and openings for each state.',
+    title: t('nav.states', lang),
+    blurb: t('guide.states.blurb', lang),
     links: [
       { label: 'New Jersey', url: '/nj' },
       { label: 'New York', url: '/ny' },
       { label: 'Pennsylvania', url: '/pa' },
-      { label: 'Compare all three', url: '/compare' },
+      { label: t('nav.compareAll', lang), url: '/compare' },
     ],
   },
   {
     title: 'Labs2Life',
-    blurb: 'S2S labs and the careers behind each experiment.',
-    links: [{ label: 'From lab to career', url: '/labs2life' }],
+    blurb: t('guide.labs.blurb', lang),
+    links: [{ label: t('guide.labs.link', lang), url: '/labs2life' }],
   },
   {
-    title: 'Careers',
-    blurb: 'Every STEM job: what it pays, openings, what to study.',
+    title: t('guide.careers.title', lang),
+    blurb: t('guide.careers.blurb', lang),
     links: [
-      { label: 'Browse all careers', url: '/careers' },
-      { label: 'Glossary of terms', url: '/glossary' },
+      { label: t('guide.careers.browse', lang), url: '/careers' },
+      { label: t('guide.careers.glossary', lang), url: '/glossary' },
     ],
   },
   {
-    title: 'Tools',
-    blurb: 'Play with the numbers and see where they come from.',
+    title: t('guide.tools.title', lang),
+    blurb: t('guide.tools.blurb', lang),
     links: [
-      { label: 'Quiz: guess the salary', url: '/quiz' },
-      { label: 'Sources & data notes', url: '/sources' },
+      { label: t('guide.tools.quiz', lang), url: '/quiz' },
+      { label: t('guide.tools.sources', lang), url: '/sources' },
     ],
   },
   {
-    title: 'About S2S',
-    blurb: 'Who we are and how we help students reach STEM careers.',
+    title: t('nav.aboutS2S', lang),
+    blurb: t('guide.about.blurb', lang),
     links: [
-      { label: 'About Students 2 Science', url: '/about' },
-      { label: 'Career Advancement Program', url: '/cap-program' },
+      { label: t('guide.about.about', lang), url: '/about' },
+      { label: t('guide.about.cap', lang), url: '/cap-program' },
     ],
   },
 ];
@@ -66,7 +68,7 @@ const sections = [
   data-auto-open={autoOpen ? 'true' : 'false'}
   role="dialog"
   aria-modal="true"
-  aria-label="How to Browse This Site"
+  aria-label={t('guide.title', lang)}
 >
   <div class="finder__scrim" data-close></div>
 
@@ -74,13 +76,13 @@ const sections = [
     <header class="finder__head">
       <div class="finder__brand">
         <span class="finder__spark" aria-hidden="true">🧭</span>
-        <span>How to Browse This Site</span>
+        <span>{t('guide.title', lang)}</span>
       </div>
       <button
         type="button"
         class="finder__x"
         data-close
-        aria-label="Close the guide"
+        aria-label={t('guide.close', lang)}
       >
         ✕
       </button>
@@ -88,7 +90,7 @@ const sections = [
 
     <div class="finder__viewport guide__body">
       <p class="finder__lede">
-        Here's everything on the site, in one place.
+        {t('guide.lede', lang)}
       </p>
 
       {

@@ -1,23 +1,30 @@
 ---
 import Base from '../layouts/Base.astro';
 import { formatDate, lastUpdated } from '../lib/data';
+import { t, type Lang } from '../i18n';
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = 'en' } = Astro.props;
 
 const updated = lastUpdated();
+
+const title = lang === 'es' ? 'De dónde vienen los datos' : 'Where the data comes from';
+const description =
+  lang === 'es'
+    ? 'Todas las fuentes de datos detrás de STEM Pathways, qué tomamos de cada una y con qué frecuencia las revisamos.'
+    : 'Every data source behind STEM Pathways, what we take from it, and how often we check it.';
 ---
 
-<Base
-  title="Where the data comes from"
-  description="Every data source behind STEM Pathways, what we take from it, and how often we check it."
->
+<Base title={title} description={description} lang={lang}>
   <section class="hero">
     <div class="wrap">
-      <span class="hero__tag"><span aria-hidden="true">●</span> Full transparency</span>
-      <h1>Where the numbers come from</h1>
-      <p class="lede">
-        Nothing on this site is made up. Here is every source, what we pull
-        from it, and how to check it yourself.
-      </p>
-      {updated && <p class="stamp">Last data run: {formatDate(updated)}</p>}
+      <span class="hero__tag"><span aria-hidden="true">●</span> {t('src.tag', lang)}</span>
+      <h1>{t('src.h1', lang)}</h1>
+      <p class="lede">{t('src.lede', lang)}</p>
+      {updated && <p class="stamp">{t('src.lastRun', lang)} {formatDate(updated, lang)}</p>}
     </div>
   </section>
 
@@ -25,13 +32,13 @@ const updated = lastUpdated();
     <div class="wrap">
       <div class="table-wrap">
         <table>
-          <caption class="sr-only">Data sources used on this site</caption>
+          <caption class="sr-only">{t('src.caption', lang)}</caption>
           <thead>
             <tr>
-              <th scope="col">Source</th>
-              <th scope="col">What we use it for</th>
-              <th scope="col">How often</th>
-              <th scope="col">Cost</th>
+              <th scope="col">{t('src.colSource', lang)}</th>
+              <th scope="col">{t('src.colUse', lang)}</th>
+              <th scope="col">{t('src.colOften', lang)}</th>
+              <th scope="col">{t('src.colCost', lang)}</th>
             </tr>
           </thead>
           <tbody>
@@ -39,57 +46,57 @@ const updated = lastUpdated();
               <th scope="row">
                 <a href="https://www.bls.gov/oes/">Bureau of Labor Statistics</a>
               </th>
-              <td>How many people work in each occupation, and what they earn</td>
-              <td>Yearly (May survey)</td>
-              <td>Free</td>
+              <td>{t('src.use.blsOes', lang)}</td>
+              <td>{t('src.yearlyMay', lang)}</td>
+              <td>{t('src.free', lang)}</td>
             </tr>
             <tr>
               <th scope="row">
                 <a href="https://www.bls.gov/emp/">BLS Employment Projections</a>
               </th>
-              <td>Which careers are growing, how many openings there will be, and what students usually study</td>
-              <td>Yearly</td>
-              <td>Free</td>
+              <td>{t('src.use.blsEmp', lang)}</td>
+              <td>{t('src.yearly', lang)}</td>
+              <td>{t('src.free', lang)}</td>
             </tr>
             <tr>
               <th scope="row">
                 <a href="https://www.usajobs.gov/">USAJOBS</a>
               </th>
-              <td>Open federal STEM jobs in each state</td>
-              <td>Daily</td>
-              <td>Free</td>
+              <td>{t('src.use.usajobs', lang)}</td>
+              <td>{t('src.daily', lang)}</td>
+              <td>{t('src.free', lang)}</td>
             </tr>
             <tr>
               <th scope="row">
                 <a href="https://www.careeronestop.org/">CareerOneStop</a>
               </th>
-              <td>Open private-sector STEM jobs, counted for every occupation we track</td>
-              <td>Daily</td>
-              <td>Free</td>
+              <td>{t('src.use.cos', lang)}</td>
+              <td>{t('src.daily', lang)}</td>
+              <td>{t('src.free', lang)}</td>
             </tr>
             <tr>
               <th scope="row">
                 <a href="https://info.csc.nj.gov/jobannouncements/">NJ Civil Service</a>
               </th>
-              <td>Open New Jersey state and local government jobs</td>
-              <td>Daily</td>
-              <td>Free</td>
+              <td>{t('src.use.nj', lang)}</td>
+              <td>{t('src.daily', lang)}</td>
+              <td>{t('src.free', lang)}</td>
             </tr>
             <tr>
               <th scope="row">
                 <a href="https://statejobs.ny.gov/">StateJobsNY</a>
               </th>
-              <td>Open New York state government jobs</td>
-              <td>Daily</td>
-              <td>Free</td>
+              <td>{t('src.use.ny', lang)}</td>
+              <td>{t('src.daily', lang)}</td>
+              <td>{t('src.free', lang)}</td>
             </tr>
             <tr>
               <th scope="row">
                 <a href="https://careers.employment.pa.gov/">Commonwealth Careers</a>
               </th>
-              <td>Open Pennsylvania state government jobs</td>
-              <td>Daily</td>
-              <td>Free</td>
+              <td>{t('src.use.pa', lang)}</td>
+              <td>{t('src.daily', lang)}</td>
+              <td>{t('src.free', lang)}</td>
             </tr>
           </tbody>
         </table>
@@ -97,24 +104,12 @@ const updated = lastUpdated();
 
       <div class="grid grid--2 notes">
         <article class="card card--flat">
-          <h3 class="card__title">How we decide what counts as STEM</h3>
-          <p class="muted">
-            We start from the Bureau of Labor Statistics definition - computer
-            and mathematical, architecture and engineering, and life and
-            physical science occupations - and add the technical, health and
-            skilled-trade occupations that students routinely think of as STEM
-            careers. Every occupation code we count is listed in the pipeline,
-            so you can see exactly how a job was classified.
-          </p>
+          <h3 class="card__title">{t('src.note1.h3', lang)}</h3>
+          <p class="muted">{t('src.note1.p', lang)}</p>
         </article>
         <article class="card card--flat">
-          <h3 class="card__title">What we do with your data</h3>
-          <p class="muted">
-            We do not collect any information about you, and there is no
-            tracking or advertising on this site. The site is a set of static
-            files, so there is no database behind it and no one to ask about
-            your data.
-          </p>
+          <h3 class="card__title">{t('src.note2.h3', lang)}</h3>
+          <p class="muted">{t('src.note2.p', lang)}</p>
         </article>
       </div>
     </div>

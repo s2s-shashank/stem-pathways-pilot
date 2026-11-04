@@ -9,6 +9,13 @@ import {
   formatDate,
   allStateData,
 } from '../lib/data';
+import { t, type Lang } from '../i18n';
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = 'en' } = Astro.props;
 
 const rows = STATES.map((s) => {
   const d = getStateData(s.code);
@@ -26,20 +33,24 @@ const rows = STATES.map((s) => {
 });
 
 const ready = rows.filter((r) => r.data);
+
+const title =
+  lang === 'es'
+    ? 'Compara Nueva Jersey, Nueva York y Pensilvania'
+    : 'Compare New Jersey, New York and Pennsylvania';
+const description =
+  lang === 'es'
+    ? 'Cifras de empleos STEM una al lado de la otra para Nueva Jersey, Nueva York y Pensilvania: gente trabajando, vacantes, salarios y cómo leerlas.'
+    : 'STEM job numbers side by side for New Jersey, New York and Pennsylvania: people working, jobs open, salaries and how to read them.';
 ---
 
-<Base
-  title="Compare New Jersey, New York and Pennsylvania"
-  description="STEM job numbers side by side for New Jersey, New York and Pennsylvania: people working, jobs open, salaries and how to read them."
->
+<Base title={title} description={description} lang={lang}>
   <section class="hero">
     <div class="wrap">
-      <span class="hero__tag"><span aria-hidden="true">●</span> Side by side</span>
-      <h1>New Jersey vs New York vs Pennsylvania</h1>
-      <p class="lede">
-        The same questions, asked the same way, for all three states. Useful if
-        you are deciding where to look for a first job.
-      </p>
+      <span class="hero__tag"><span aria-hidden="true">●</span> {t('cmp.tag', lang)}</span>
+      <h1>{t('cmp.h1', lang)}</h1>
+      <p class="lede">{t('cmp.lede', lang)}</p>
+      {lang === 'es' && <p class="stamp">{t('es.notice', lang)}</p>}
     </div>
   </section>
 
@@ -48,20 +59,17 @@ const ready = rows.filter((r) => r.data);
       {
         ready.length === 0 ? (
           <div class="wrap--narrow">
-            <h2>Nothing to compare yet</h2>
-            <p class="lede">The first data run is still in progress.</p>
+            <h2>{t('cmp.empty.h2', lang)}</h2>
+            <p class="lede">{t('cmp.empty.p', lang)}</p>
           </div>
         ) : (
           <>
             <div class="table-wrap">
               <table>
-                <caption class="sr-only">
-                  STEM job statistics compared across New Jersey, New York and
-                  Pennsylvania
-                </caption>
+                <caption class="sr-only">{t('cmp.caption', lang)}</caption>
                 <thead>
                   <tr>
-                    <th scope="col">What we measured</th>
+                    <th scope="col">{t('cmp.col', lang)}</th>
                     {rows.map((r) => (
                       <th scope="col" class="num">
                         {r.state.short}
@@ -71,44 +79,39 @@ const ready = rows.filter((r) => r.data);
                 </thead>
                 <tbody>
                   <tr>
-                    <th scope="row">People already working in STEM jobs</th>
+                    <th scope="row">{t('cmp.row1', lang)}</th>
                     {rows.map((r) => (
                       <td class="num">{formatNumber(r.employment)}</td>
                     ))}
                   </tr>
                   <tr>
-                    <th scope="row">Private-sector job matches (30 days)</th>
+                    <th scope="row">{t('cmp.row2', lang)}</th>
                     {rows.map((r) => (
                       <td class="num">{formatNumber(r.privateOpen)}</td>
                     ))}
                   </tr>
                   <tr>
-                    <th scope="row">Government jobs open today</th>
+                    <th scope="row">{t('cmp.row3', lang)}</th>
                     {rows.map((r) => (
                       <td class="num">{formatNumber(r.open)}</td>
                     ))}
                   </tr>
                   <tr>
-                    <th scope="row">Typical STEM salary (middle pay)</th>
+                    <th scope="row">{t('cmp.row4', lang)}</th>
                     {rows.map((r) => (
                       <td class="num">{formatMoney(r.median)}</td>
                     ))}
                   </tr>
                   <tr>
-                    <th scope="row">Data collected on</th>
+                    <th scope="row">{t('cmp.row5', lang)}</th>
                     {rows.map((r) => (
-                      <td class="num small muted">{formatDate(r.data?.asOf)}</td>
+                      <td class="num small muted">{formatDate(r.data?.asOf, lang)}</td>
                     ))}
                   </tr>
                 </tbody>
               </table>
             </div>
-            <p class="source-note">
-              The first two rows count different things, on purpose. The first
-              is everyone on the payroll. The second is job openings advertised
-              in the last month. You cannot compare them directly - and neither
-              can the government.
-            </p>
+            <p class="source-note">{t('cmp.note', lang)}</p>
           </>
         )
       }
@@ -118,40 +121,26 @@ const ready = rows.filter((r) => r.data);
   <section class="section section--alt">
     <div class="wrap">
       <div class="section-head">
-        <span class="eyebrow">Worth knowing</span>
-        <h2>How to read these numbers</h2>
-        <p class="lede">
-          Three things that trip people up when they read jobs data.
-        </p>
+        <span class="eyebrow">{t('cmp.read.eyebrow', lang)}</span>
+        <h2>{t('cmp.read.h2', lang)}</h2>
+        <p class="lede">{t('cmp.read.lede', lang)}</p>
       </div>
       <div class="grid grid--3">
         <article class="card card--flat">
-          <h3 class="card__title">An opening is not a career</h3>
-          <p class="muted">
-            A posting is one job opening today. It might be filled next week.
-            It shows you that employers are hiring, not that a job is waiting
-            for you.
-          </p>
+          <h3 class="card__title">{t('cmp.card1.h3', lang)}</h3>
+          <p class="muted">{t('cmp.card1.p', lang)}</p>
         </article>
         <article class="card card--flat">
-          <h3 class="card__title">Middle beats average</h3>
-          <p class="muted">
-            A few very high salaries drag the average up. The middle salary is
-            what the person in the middle earns - a much better guide to what
-            you would actually get.
-          </p>
+          <h3 class="card__title">{t('cmp.card2.h3', lang)}</h3>
+          <p class="muted">{t('cmp.card2.p', lang)}</p>
         </article>
         <article class="card card--flat">
-          <h3 class="card__title">STEM is not only university</h3>
-          <p class="muted">
-            Plenty of STEM careers - technicians, machinists, IT support,
-            surveying - start with a certificate, an apprenticeship or a
-            two-year degree.
-          </p>
+          <h3 class="card__title">{t('cmp.card3.h3', lang)}</h3>
+          <p class="muted">{t('cmp.card3.p', lang)}</p>
         </article>
       </div>
       <p class="source-note">
-        Words you might not know? <a href={withBase('/glossary')}>The glossary explains them.</a>
+        {t('cmp.glossary1', lang)} <a href={withBase('/glossary')}>{t('cmp.glossary2', lang)}</a>
       </p>
     </div>
   </section>

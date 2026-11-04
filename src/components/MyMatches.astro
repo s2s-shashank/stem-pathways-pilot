@@ -6,23 +6,27 @@
  * event. Nothing is stored, so this section stays hidden until the
  * student has actually finished a run on this page.
  */
+import { t, type Lang } from '../i18n';
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = 'en' } = Astro.props;
 ---
 
-<section class="section section--alt" id="my-matches" hidden>
+<section class="section section--alt" id="my-matches" hidden data-lang={lang}>
   <div class="wrap">
     <div class="section-head">
-      <span class="eyebrow">From the Career Finder</span>
-      <h2>Your career matches</h2>
-      <p class="lede">
-        These are the STEM jobs that match the answers you just gave, with
-        what they pay and whether they are growing.
-      </p>
+      <span class="eyebrow">{t('mm.eyebrow', lang)}</span>
+      <h2>{t('mm.h2', lang)}</h2>
+      <p class="lede">{t('mm.lede', lang)}</p>
     </div>
 
     <div class="my-matches__bar">
       <p class="my-matches__note" id="my-matches-note"></p>
       <button type="button" class="btn btn--outline" data-open-finder>
-        Do it again
+        {t('mm.again', lang)}
       </button>
     </div>
 
@@ -38,6 +42,7 @@
   const note = document.getElementById('my-matches-note');
 
   if (section && list && note) {
+    const es = section.dataset.lang === 'es';
     document.addEventListener('stemjobs:finder-results', (e) => {
       const { matches, state } = (e as CustomEvent<{
         matches: Match[];
@@ -49,13 +54,21 @@
       list.innerHTML = matches.map((m) => matchCardHtml(m, state)).join('');
       section.hidden = false;
 
+      const names: Record<string, [string, string]> = {
+        nj: ['New Jersey', 'Nueva Jersey'],
+        ny: ['New York', 'Nueva York'],
+        pa: ['Pennsylvania', 'Pensilvania'],
+      };
       const where =
         state === 'other'
-          ? 'New Jersey, New York and Pennsylvania'
-          : { nj: 'New Jersey', ny: 'New York', pa: 'Pennsylvania' }[state] ??
-            'your area';
+          ? es
+            ? 'Nueva Jersey, Nueva York y Pensilvania'
+            : 'New Jersey, New York and Pennsylvania'
+          : names[state]?.[es ? 1 : 0] ?? (es ? 'tu zona' : 'your area');
 
-      note.textContent = `${matches.length} jobs, priced for ${where}.`;
+      note.textContent = es
+        ? `${matches.length} empleos, con precios para ${where}.`
+        : `${matches.length} jobs, priced for ${where}.`;
     });
   }
 </script>
