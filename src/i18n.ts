@@ -4,7 +4,8 @@
  * The site has two locales: English at / and Spanish at /es/. Spanish pages
  * are full Astro pages under src/pages/es/ that reuse the same components
  * with translated strings pulled from this file. Data (job titles, posting
- * titles, metro names) comes from government sources and stays in English.
+ * titles, metro names) comes from government sources and stays in English,
+ * except the job titles listed in JOB_TITLES_ES.
  *
  * Add a string: put it in `en` and in `es` with the same key, then call
  * t('key', lang). The type of `es` enforces that no key is missing.
@@ -536,7 +537,7 @@ const es: Record<I18nKey, string> = {
     'Cada cifra de este sitio proviene de una fuente gubernamental oficial y está marcada con su fecha. Nada aquí es un consejo sobre tu futuro — es un punto de partida para explorar.',
   'footer.lastRun': 'Última actualización de datos:',
   'es.notice':
-    'Los títulos de los puestos y las ofertas de trabajo provienen de fuentes gubernamentales oficiales de EE. UU. y se muestran en inglés.',
+    'Los títulos de los puestos y las ofertas de trabajo provienen de fuentes gubernamentales oficiales de EE. UU.; algunos títulos se muestran traducidos al español.',
   'guide.title': 'Cómo navegar este sitio',
   'guide.lede': 'Aquí está todo el sitio, en un solo lugar.',
   'guide.close': 'Cerrar la guía',
@@ -993,6 +994,39 @@ export function t(
 }
 
 export const LANGS: Lang[] = ['en', 'es'];
+
+/**
+ * Spanish titles for the job titles shown on the state pages. The English
+ * titles in the data pipeline stay as they are.
+ */
+export const JOB_TITLES_ES: Record<string, string> = {
+  'General Engineer - Recent Graduate': 'Ingeniero General, Recién Graduado',
+  'IT Specialist (Data Engineer)': 'Especialista en TI (Ingeniero de datos)',
+  'Interdisciplinary General Engineer/Physical Scientist - Recent Graduate':
+    'Ingeniero General Interdisciplinario / Científico físico - Recién Graduado',
+  'Registered Nurse - Referral Coordination Team': 'Enfermero Registrado',
+  'Registered Nurse': 'Enfermero Registrado',
+  'Registered Nurses': 'Enfermero Registrado',
+  'Clinical Nurse': 'Enfermera Clínica',
+  'ENGINEERING TECHNICIAN (CIVIL)': 'Técnico de Ingeniería',
+  'Engineering Technician': 'Técnico de Ingeniería',
+  'Software Developer': 'Desarrollador de software',
+  'Software Developers': 'Desarrollador de software',
+  'Computer and Information Systems Managers':
+    'Gerente de Sistemas Informáticos y de computación',
+  'Computer User Support Specialist': 'Especialistas de soporte al usuario de computadoras',
+  'Computer User Support Specialists': 'Especialistas de soporte al usuario de computadoras',
+  'Licensed Practical and Licensed Vocational Nurses':
+    'Enfermeros Prácticos y enfermeros vocacionales con licencia',
+  'Computer Systems Analysts': 'Analista de sistemas computacionales',
+  'Pharmacy Technicians': 'Técnicos de farmacia',
+  'Computer Occupations, All Other': 'Ocupaciones Informáticas, todas las demás',
+};
+
+/** Use the Spanish job title when we have one; otherwise keep the data title. */
+export function jobTitle(title: string, lang: Lang = 'en'): string {
+  return lang === 'es' ? (JOB_TITLES_ES[title] ?? title) : title;
+}
 
 /** Spanish category labels (categories.json is shared with the data pipeline). */
 export const CATEGORY_LABELS_ES: Record<string, string> = {

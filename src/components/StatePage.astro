@@ -2,7 +2,7 @@
 import { withBase } from '../lib/url';
 import type { StateMeta } from '../data/states';
 import { CATEGORIES } from '../data/states';
-import { t, CATEGORY_LABELS_ES, type Lang, type I18nKey } from '../i18n';
+import { t, jobTitle, CATEGORY_LABELS_ES, type Lang, type I18nKey } from '../i18n';
 import Bars from './Bars.astro';
 import StatTile from './StatTile.astro';
 import Explain from './Explain.astro';
@@ -289,7 +289,7 @@ const SOURCE_NOTES: Record<string, I18nKey> = {
                 {(live?.postings ?? []).slice(0, 8).map((p) => (
                   <li class="posting">
                     <a class="posting__title" href={p.url} rel="noopener">
-                      {p.title}
+                      {jobTitle(p.title, lang)}
                     </a>
                     <span class="posting__meta">
                       {p.employer}
@@ -317,7 +317,7 @@ const SOURCE_NOTES: Record<string, I18nKey> = {
           <div class="card">
             <Bars
               items={topJobs.map((o) => ({
-                label: o.title,
+                label: jobTitle(o.title, lang),
                 value: o.employment,
                 href: `/careers/${o.soc}`,
               }))}
@@ -338,7 +338,7 @@ const SOURCE_NOTES: Record<string, I18nKey> = {
           <div class="card">
             <Bars
               items={topPay.map((o) => ({
-                label: o.title,
+                label: jobTitle(o.title, lang),
                 value: o.meanWage,
                 color: state.color,
                 href: `/careers/${o.soc}`,
@@ -398,7 +398,7 @@ const SOURCE_NOTES: Record<string, I18nKey> = {
             <div class="card">
               <Bars
                 items={growing.map((o) => ({
-                  label: o.title,
+                  label: jobTitle(o.title, lang),
                   value: o.growth ?? 0,
                   display: formatGrowth(o.growth),
                   color: 'var(--c-good)',
@@ -433,7 +433,7 @@ const SOURCE_NOTES: Record<string, I18nKey> = {
                 <ul class="career-links">
                   {g.occupations.slice(0, 6).map((o) => (
                     <li>
-                      <a href={withBase(`/careers/${o.soc}`)}>{o.title}</a>
+                      <a href={withBase(`/careers/${o.soc}`)}>{jobTitle(o.title, lang)}</a>
                       <span class="muted"> · {formatMoney(o.meanWage)}</span>
                     </li>
                   ))}
