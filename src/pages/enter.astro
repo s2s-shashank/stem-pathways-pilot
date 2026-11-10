@@ -1,0 +1,291 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import { withBase } from '../lib/url';
+import HeroScience from '../components/HeroScience.astro';
+import {
+  GATE_ITERATIONS,
+  GATE_SALT,
+  GATE_STORAGE_KEY,
+  gatePasswordHash,
+} from '../lib/gate';
+import '../styles/global.css';
+
+const hash = gatePasswordHash();
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Enter password | STEM Pathways</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#0b1220" />
+    <link rel="icon" type="image/png" href={withBase('/s2s-logo.png')} />
+    <meta name="generator" content={Astro.generator} />
+    <!--
+      Only this page runs the router. It exists to animate the logo into the
+      home page once; the home page does not enable it, so the rest of the
+      site keeps its normal page loads.
+    -->
+    <ClientRouter />
+  </head>
+  <body>
+    <main class="hero gate">
+      <div class="wrap gate__inner">
+        <div class="hero__logo-wrap">
+          <HeroScience />
+        </div>
+
+        <form
+          class="gate__form"
+          data-gate-form
+          data-hash={hash}
+          data-salt={GATE_SALT}
+          data-iterations={GATE_ITERATIONS}
+          data-storage-key={GATE_STORAGE_KEY}
+          data-home={withBase('/')}
+          novalidate
+        >
+          <label class="gate__label" for="gate-password">Enter the password to continue</label>
+          <div class="gate__row">
+            <input
+              id="gate-password"
+              class="gate__input"
+              type="password"
+              name="password"
+              autocomplete="current-password"
+              autocapitalize="off"
+              spellcheck="false"
+              required
+              autofocus
+              aria-describedby="gate-error"
+            />
+            <button class="btn btn--sun gate__submit" type="submit">Enter</button>
+          </div>
+          <p id="gate-error" class="gate__error" role="alert" hidden></p>
+        </form>
+
+        <section class="gate__about" aria-labelledby="gate-about-title">
+          <h1 id="gate-about-title" class="gate__title">STEM Pathways Pilot</h1>
+          <p class="gate__kicker">by Students 2 Science</p>
+          <p>
+            Students 2 Science (S2S) is a New Jersey nonprofit that brings real science, real
+            labs and real scientists to students, many of them from communities that have never
+            had that chance.
+          </p>
+          <p>
+            STEM Pathways is our pilot site: real numbers from official government sources on
+            STEM jobs in New Jersey, New York and Pennsylvania. How many are open, what they pay,
+            and what you would study to get one. The pilot is private while we test it.
+          </p>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      import { navigate } from 'astro:transitions/client';
+
+      const form = document.querySelector<HTMLFormElement>('[data-gate-form]')!;
+      const input = form.querySelector<HTMLInputElement>('input')!;
+      const submit = form.querySelector<HTMLButtonElement>('button')!;
+      const error = form.querySelector<HTMLElement>('.gate__error')!;
+      const { hash, salt, iterations, storageKey, home } = form.dataset as Record<string, string>;
+
+      // Only follow ?next= to a page on this site, under the site's base path.
+      const base = home.replace(/\/$/, '');
+      function destination(): string {
+        const next = new URLSearchParams(location.search).get('next');
+        if (!next) return home;
+        try {
+          const url = new URL(next, location.origin);
+          const inSite = url.origin === location.origin && url.pathname.startsWith(base + '/');
+          const isGate = url.pathname.startsWith(base + '/enter');
+          return inSite && !isGate ? url.pathname + url.search + url.hash : home;
+        } catch {
+          return home;
+        }
+      }
+
+      // The logo glides into the hero on the home page. The home page's own
+      // entrance animation would fight that, so it is switched off for this
+      // one arrival.
+      document.addEventListener('astro:before-swap', (e) => {
+        e.newDocument.documentElement.setAttribute('data-from-gate', '');
+      });
+
+      function unlock() {
+        // Replace, so the Back button does not land on the gate again.
+        navigate(destination(), { history: 'replace' });
+      }
+
+      let unlocked = false;
+      try {
+        unlocked = localStorage.getItem(storageKey) === '1';
+      } catch {
+        // Storage blocked: the visitor has to enter the password.
+      }
+      if (unlocked) unlock();
+
+      async function derive(password: string): Promise<string> {
+        const enc = new TextEncoder();
+        const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, [
+          'deriveBits',
+        ]);
+        const bits = await crypto.subtle.deriveBits(
+          { name: 'PBKDF2', hash: 'SHA-256', salt: enc.encode(salt), iterations: Number(iterations) },
+          key,
+          256,
+        );
+        return Array.from(new Uint8Array(bits), (b) => b.toString(16).padStart(2, '0')).join('');
+      }
+
+      function showError(message: string) {
+        error.textContent = message;
+        error.hidden = false;
+        // Restart the shake animation on repeated wrong guesses.
+        form.classList.remove('is-wrong');
+        void form.offsetWidth;
+        form.classList.add('is-wrong');
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!input.value) {
+          showError('Type the password first.');
+          input.focus();
+          return;
+        }
+        if (!window.crypto?.subtle) {
+          showError('This browser cannot check passwords here. Open the site over https.');
+          return;
+        }
+        submit.disabled = true;
+        error.hidden = true;
+        let ok = false;
+        try {
+          ok = (await derive(input.value)) === hash;
+        } finally {
+          submit.disabled = false;
+        }
+        if (!ok) {
+          showError('That password is not right. Try again.');
+          input.select();
+          return;
+        }
+        try {
+          localStorage.setItem(storageKey, '1');
+        } catch {
+          // Storage blocked: this page view is let in, but the next page will ask again.
+        }
+        input.blur();
+        unlock();
+      });
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  .gate {
+    min-height: 100vh;
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    padding-block: var(--space-l);
+  }
+
+  .gate__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-l);
+    width: 100%;
+  }
+
+  .gate__form {
+    width: min(100%, 24rem);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+    text-align: center;
+  }
+
+  .gate__label {
+    font-weight: 700;
+    color: #eaf0fb;
+  }
+
+  .gate__row {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .gate__input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.7rem 1rem;
+    font: inherit;
+    color: #fff;
+    background: rgb(255 255 255 / 10%);
+    border: 1px solid rgb(255 255 255 / 35%);
+    border-radius: var(--radius-pill);
+  }
+
+  .gate__input:focus-visible {
+    outline-offset: 2px;
+    border-radius: var(--radius-pill);
+  }
+
+  .gate__submit:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+
+  .gate__about {
+    max-width: 34rem;
+    text-align: center;
+    color: #c4d0e6;
+  }
+
+  .gate__about p {
+    margin: 0 0 0.75rem;
+  }
+
+  .gate__title {
+    margin: 0 auto;
+    max-width: none;
+    font-size: var(--step-2);
+    color: #fff;
+  }
+
+  .gate__kicker {
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    color: #a9e4ff;
+    margin-bottom: 1rem !important;
+  }
+
+  .gate__error {
+    margin: 0;
+    color: #ffb4a8;
+    font-weight: 600;
+  }
+
+  .gate__form.is-wrong .gate__row {
+    animation: gate-shake 0.35s ease;
+  }
+
+  @keyframes gate-shake {
+    20%,
+    60% {
+      transform: translateX(-6px);
+    }
+    40%,
+    80% {
+      transform: translateX(6px);
+    }
+  }
+</style>

@@ -33,6 +33,6 @@ export default defineConfig({
     format: 'directory',
     inlineStylesheets: 'auto',
   },
-  integrations: [sitemap()],
+  integrations: [sitemap({ filter: (page) => !page.includes('/enter') })],
   compressHTML: true,
 });

@@ -174,17 +174,25 @@ const sections = [
     if ((e.target as HTMLElement).closest('[data-open-finder]')) open();
   });
 
-  // Open itself once, on the home page only, per browser.
+  // Open itself once, on the home page only, per browser. After the logo
+  // glides in from the password page, wait for that to finish first.
   if (root?.dataset.autoOpen === 'true') {
     const SEEN_KEY = 'stempathways:guide-seen';
+    const openAfterArrival = () => {
+      if (document.documentElement.hasAttribute('data-from-gate')) {
+        setTimeout(open, 1000);
+      } else {
+        open();
+      }
+    };
     try {
       if (!localStorage.getItem(SEEN_KEY)) {
         localStorage.setItem(SEEN_KEY, '1');
-        open();
+        openAfterArrival();
       }
     } catch {
       // Private mode - just open it.
-      open();
+      openAfterArrival();
     }
   }
 </script>

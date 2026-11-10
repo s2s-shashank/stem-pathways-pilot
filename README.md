@@ -170,8 +170,25 @@ Repository secrets:
 - `BLS_CONTACT_EMAIL` - your email, so BLS can reach you
 - `CAREERONESTOP_USER_ID` and `CAREERONESTOP_TOKEN` - from
   <https://api.careeronestop.org/>
+- `SITE_PASSWORD` - the password for the gate page (see below)
 
 Set **Settings → Pages → Source** to **GitHub Actions**.
+
+## Password gate
+
+Every page sends visitors without the unlock flag to `/enter/`, a page with
+the logo animation and a password box. A right password stores a flag in
+`localStorage` (`stempathways:unlocked`) and the logo glides into the home
+page with an Astro view transition (`transition:name="hero-logo"`).
+
+The password is read from `SITE_PASSWORD` at build time (`.env` locally, a
+repository secret on GitHub). Only a PBKDF2 hash is published. The build
+fails if it is missing.
+
+This is a static site, so the gate runs in the browser. It keeps casual
+visitors out, but it is **not access control**: the page files are still
+public to anyone who requests them directly or sets the flag by hand. Do not
+put anything behind it that must stay private.
 
 ## Licence and data use
 

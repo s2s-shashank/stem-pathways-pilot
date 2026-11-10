@@ -39,7 +39,12 @@ const BASE = process.env.BASE_URL || `${origin}/stem-pathways-pilot/`;
 const BASE_PATH = new URL(BASE).pathname;
 
 const browser = await chromium.launch();
+
+// The site sits behind a password gate that stores one flag in localStorage.
+// Start every test page already unlocked so it reaches the real pages.
+const unlock = () => localStorage.setItem('stempathways:unlocked', '1');
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+await page.addInitScript(unlock);
 
 const errors = [];
 page.on('pageerror', (e) => errors.push(String(e)));
@@ -272,6 +277,7 @@ check(!!closed, 'Escape closes the popup');
 
 // Mobile layout.
 const mobile = await browser.newPage({ viewport: { width: 390, height: 780 } });
+await mobile.addInitScript(unlock);
 await mobile.goto(BASE, { waitUntil: 'networkidle' });
 await mobile.waitForSelector('#finder:not([hidden])', { timeout: 5000 });
 const overflow = await mobile.evaluate(() => {

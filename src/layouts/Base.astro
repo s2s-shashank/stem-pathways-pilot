@@ -1,4 +1,6 @@
 ---
+import { ClientRouter } from 'astro:transitions';
+import { GATE_STORAGE_KEY } from '../lib/gate';
 import { withBase } from '../lib/url';
 import { lastUpdated, formatDate } from '../lib/data';
 import { t, type Lang } from '../i18n';
@@ -10,10 +12,16 @@ interface Props {
   description: string;
   /** Adds " | STEM Pathways" to the title automatically. */
   raw?: boolean;
+  /**
+   * Make this page a valid target for the password page's logo transition.
+   * The router is switched off again as soon as the page is up, so the rest
+   * of the site keeps its normal page loads (see the script below).
+   */
+  gateTarget?: boolean;
   lang?: Lang;
 }
 
-const { title, description, raw = false, lang = 'en' } = Astro.props;
+const { title, description, raw = false, lang = 'en', gateTarget = false } = Astro.props;
 const fullTitle = raw ? title : `${title} | STEM Pathways`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const updated = formatDate(lastUpdated(), lang);
@@ -39,6 +47,23 @@ const esPath = withBase(`/es${plainPath === '/' ? '' : plainPath}`);
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!--
+      Password gate: without the unlock flag, go to /enter/ before anything
+      paints. Not real access control - see src/lib/gate.ts.
+    -->
+    <script is:inline define:vars={{ key: GATE_STORAGE_KEY, gate: withBase('/enter/') }}>
+      (function () {
+        var unlocked = false;
+        try {
+          unlocked = localStorage.getItem(key) === '1';
+        } catch (e) {}
+        if (unlocked) return;
+        document.documentElement.style.visibility = 'hidden';
+        var next = location.pathname + location.search + location.hash;
+        location.replace(gate + '?next=' + encodeURIComponent(next));
+      })();
+    </script>
+    <noscript><style>body { display: none; }</style></noscript>
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
@@ -48,6 +73,7 @@ const esPath = withBase(`/es${plainPath === '/' ? '' : plainPath}`);
     <link rel="alternate" hreflang="es" href={new URL(esPath, Astro.site)} />
     <link rel="alternate" hreflang="x-default" href={new URL(enPath, Astro.site)} />
     <meta name="generator" content={Astro.generator} />
+    {gateTarget && <ClientRouter />}
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content={fullTitle} />
@@ -173,6 +199,15 @@ const esPath = withBase(`/es${plainPath === '/' ? '' : plainPath}`);
 
     <!-- The How to Browse This Site popup. It opens itself once, on the home page. -->
     <CareerFinder autoOpen={isHome} lang={lang} />
+    {
+      gateTarget && (
+        <script is:inline>
+          // The router is only here so the password page can animate into
+          // this page. Turn it off now: every later link is a normal page load.
+          document.querySelector('[name="astro-view-transitions-enabled"]')?.remove();
+        </script>
+      )
+    }
 
     <script>
       // Dropdowns open on hover and close when the pointer leaves; taps and

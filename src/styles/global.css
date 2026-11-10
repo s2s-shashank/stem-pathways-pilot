@@ -686,6 +686,17 @@ hr {
   }
 }
 
+/* Arriving from the password page: the logo has just glided in from the
+   gate (view transition "hero-logo"), so skip the entrance animation. */
+html[data-from-gate] .hero__logo {
+  animation: none;
+}
+
+::view-transition-group(hero-logo) {
+  animation-duration: 0.8s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 @keyframes hero-logo-glow {
   0%,
   100% {

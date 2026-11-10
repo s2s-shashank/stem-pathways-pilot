@@ -129,6 +129,9 @@ jobs:
           path: src/data/generated
 
       - name: Build
+        env:
+          # The password gate (src/lib/gate.ts) publishes only a hash of this.
+          SITE_PASSWORD: ${{ secrets.SITE_PASSWORD }}
         run: npm run build
 
       - name: Upload site
