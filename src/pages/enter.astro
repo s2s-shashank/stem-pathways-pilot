@@ -114,9 +114,18 @@ const hash = gatePasswordHash();
         e.newDocument.documentElement.setAttribute('data-from-gate', '');
       });
 
-      function unlock() {
+      function unlock(animate = false) {
+        const go = () => navigate(destination(), { history: 'replace' });
+        if (!animate || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          go();
+          return;
+        }
+        // Let the gate play its exit before the logo glides to the home page.
+        submit.disabled = true;
+        input.readOnly = true;
+        document.querySelector('.gate')!.classList.add('is-unlocking');
         // Replace, so the Back button does not land on the gate again.
-        navigate(destination(), { history: 'replace' });
+        setTimeout(go, 450);
       }
 
       let unlocked = false;
@@ -161,12 +170,14 @@ const hash = gatePasswordHash();
           return;
         }
         submit.disabled = true;
+        form.classList.add('is-checking');
         error.hidden = true;
         let ok = false;
         try {
           ok = (await derive(input.value)) === hash;
         } finally {
           submit.disabled = false;
+          form.classList.remove('is-checking');
         }
         if (!ok) {
           showError('That password is not right. Try again.');
@@ -179,7 +190,12 @@ const hash = gatePasswordHash();
           // Storage blocked: this page view is let in, but the next page will ask again.
         }
         input.blur();
-        unlock();
+        unlock(true);
+      });
+
+      // Editing after a wrong guess clears the error styling.
+      input.addEventListener('input', () => {
+        form.classList.remove('is-wrong');
       });
     </script>
   </body>
@@ -192,6 +208,33 @@ const hash = gatePasswordHash();
     display: grid;
     place-items: center;
     padding-block: var(--space-l);
+  }
+
+  /* Slow drifting colour and stars behind the content. */
+  .gate::before {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    background:
+      var(--hero-stars),
+      radial-gradient(640px 420px at 28% 32%, rgb(64 164 236 / 20%), transparent 70%),
+      radial-gradient(560px 400px at 74% 68%, rgb(31 111 106 / 32%), transparent 70%);
+    background-size: var(--hero-stars-size), auto, auto;
+    pointer-events: none;
+    translate: calc(var(--px, 0) * -6px) calc(var(--py, 0) * -4px);
+    transition: translate 0.6s ease-out;
+    animation:
+      gate-drift 20s ease-in-out infinite alternate,
+      hero-twinkle 6s ease-in-out infinite alternate;
+  }
+
+  /* The logo reacts while you type. */
+  .gate:has(.gate__input:focus) .hero__logo-wrap::before {
+    filter: blur(20px) brightness(1.25);
+  }
+
+  .gate:has(.gate__input:focus) .hero__halo {
+    opacity: 0.95;
   }
 
   .gate__inner {
@@ -209,6 +252,7 @@ const hash = gatePasswordHash();
     align-items: stretch;
     gap: 0.6rem;
     text-align: center;
+    animation: gate-rise 0.8s 0.45s cubic-bezier(0.16, 1, 0.3, 1) backwards;
   }
 
   .gate__label {
@@ -230,11 +274,37 @@ const hash = gatePasswordHash();
     background: rgb(255 255 255 / 10%);
     border: 1px solid rgb(255 255 255 / 35%);
     border-radius: var(--radius-pill);
+    transition:
+      background 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
   }
 
   .gate__input:focus-visible {
-    outline-offset: 2px;
-    border-radius: var(--radius-pill);
+    outline: 2px solid transparent;
+    background: rgb(255 255 255 / 14%);
+    border-color: rgb(169 228 255 / 85%);
+    box-shadow:
+      0 0 0 4px rgb(90 180 250 / 22%),
+      0 0 28px rgb(90 180 250 / 28%);
+  }
+
+  .gate__form.is-wrong .gate__input {
+    border-color: #ff9b8c;
+    box-shadow: 0 0 0 4px rgb(255 140 120 / 22%);
+  }
+
+  .gate__submit {
+    justify-content: center;
+    min-width: 5.5rem;
+  }
+
+  .gate__submit:not(:disabled):hover {
+    box-shadow: 0 8px 22px rgb(255 159 69 / 35%);
+  }
+
+  .gate__submit:not(:disabled):active {
+    transform: translateY(1px);
   }
 
   .gate__submit:disabled {
@@ -242,10 +312,21 @@ const hash = gatePasswordHash();
     cursor: progress;
   }
 
+  .gate__form.is-checking .gate__submit::after {
+    content: '';
+    width: 0.9em;
+    height: 0.9em;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: gate-spin 0.7s linear infinite;
+  }
+
   .gate__about {
     max-width: 34rem;
     text-align: center;
     color: #c4d0e6;
+    animation: gate-rise 0.8s 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
   }
 
   .gate__about p {
@@ -274,18 +355,104 @@ const hash = gatePasswordHash();
     font-weight: 600;
   }
 
+  .gate__error:not([hidden]) {
+    animation: gate-rise 0.3s ease backwards;
+  }
+
   .gate__form.is-wrong .gate__row {
-    animation: gate-shake 0.35s ease;
+    animation: gate-shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+  }
+
+  /* Correct password: the form fades away and the logo swells before it glides home. */
+  .gate.is-unlocking .gate__form,
+  .gate.is-unlocking .gate__about {
+    animation: gate-leave 0.4s ease forwards;
+  }
+
+  .gate.is-unlocking .hero__logo {
+    animation: gate-unlock 0.45s ease-out forwards;
+  }
+
+  /* The icons and rings burst outward and the halo spins up. */
+  .gate.is-unlocking .hero__logo-wrap .hero__decor-item {
+    scale: 2.4;
+    opacity: 0;
+    transition:
+      scale 0.45s ease-in,
+      opacity 0.4s ease-in;
+  }
+
+  .gate.is-unlocking .hero__logo-wrap .hero__ring {
+    scale: 1.35;
+    opacity: 0;
+    transition:
+      scale 0.45s ease-in,
+      opacity 0.4s ease-in;
+  }
+
+  .gate.is-unlocking .hero__logo-wrap .hero__halo {
+    opacity: 1;
+    animation-duration: 1.2s, 0.9s;
+  }
+
+  @keyframes gate-drift {
+    to {
+      transform: translate3d(4%, 3%, 0) scale(1.08);
+    }
+  }
+
+  @keyframes gate-rise {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+  }
+
+  @keyframes gate-leave {
+    to {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes gate-unlock {
+    to {
+      transform: scale(1.08);
+    }
+  }
+
+  @keyframes gate-spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   @keyframes gate-shake {
-    20%,
-    60% {
-      transform: translateX(-6px);
+    15% {
+      transform: translateX(-8px);
     }
-    40%,
-    80% {
-      transform: translateX(6px);
+    30% {
+      transform: translateX(7px);
+    }
+    45% {
+      transform: translateX(-5px);
+    }
+    60% {
+      transform: translateX(3px);
+    }
+    75% {
+      transform: translateX(-2px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gate::before,
+    .gate__form,
+    .gate__about,
+    .gate__error:not([hidden]),
+    .gate__form.is-wrong .gate__row,
+    .gate__form.is-checking .gate__submit::after {
+      animation: none;
     }
   }
 </style>

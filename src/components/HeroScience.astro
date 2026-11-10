@@ -5,6 +5,10 @@ import { withBase } from '../lib/url';
 <div class="hero__logo-wrap" transition:name="hero-logo">
   <div class="hero__orbit-center" aria-hidden="true">
     <div class="hero__orbit-container">
+      <span class="hero__ring hero__ring--1"></span>
+      <span class="hero__ring hero__ring--2"></span>
+      <span class="hero__ring hero__ring--3"></span>
+
       <span class="hero__decor-item hero__decor-item--dna">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
           <path d="M8 2c0 4 8 6 8 10s-8 6-8 10" />
@@ -92,6 +96,8 @@ import { withBase } from '../lib/url';
     </div>
 
     <div class="hero__logo-container">
+      <div class="hero__halo"></div>
+
       <div class="hero__orbit-center-glow"></div>
 
       <img
@@ -106,3 +112,37 @@ import { withBase } from '../lib/url';
     </div>
   </div>
 </div>
+
+<script>
+  // Pointer parallax. One delegated listener, so it keeps working after the
+  // gate's view transition swaps in the home page.
+  const fine = matchMedia('(hover: hover) and (pointer: fine)');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+  let x = 0;
+  let y = 0;
+  let frame = 0;
+
+  function apply() {
+    frame = 0;
+    const hero = document.querySelector<HTMLElement>('.hero:has(.hero__orbit-center)');
+    hero?.style.setProperty('--px', x.toFixed(3));
+    hero?.style.setProperty('--py', y.toFixed(3));
+  }
+
+  function schedule() {
+    if (!frame) frame = requestAnimationFrame(apply);
+  }
+
+  document.addEventListener('pointermove', (e) => {
+    if (!fine.matches || reduce.matches) return;
+    x = (e.clientX / innerWidth) * 2 - 1;
+    y = (e.clientY / innerHeight) * 2 - 1;
+    schedule();
+  });
+
+  document.documentElement.addEventListener('mouseleave', () => {
+    x = 0;
+    y = 0;
+    schedule();
+  });
+</script>
