@@ -1,5 +1,4 @@
 @import './tokens.css';
-@import './finder.css';
 
 /* ------------------------------------------------------------------
    Base
@@ -253,18 +252,19 @@ hr {
   color: #fff;
 }
 
-.nav__finder {
-  font: inherit;
-  font-size: var(--step--1);
+/* The yellow "Career Exploration" link in the header. */
+.nav a.nav__explore {
+  background: linear-gradient(135deg, #ffd166, #ff9f45);
+  color: var(--navy-900);
   font-weight: 800;
-  padding: 0.45rem 0.9rem;
-  border-radius: var(--radius-pill);
-  cursor: pointer;
   white-space: nowrap;
-  transition: transform 0.15s ease;
+  transition: transform 0.15s ease, filter 0.15s ease;
 }
 
-.nav__finder:hover {
+.nav a.nav__explore:hover {
+  background: linear-gradient(135deg, #ffd166, #ff9f45);
+  color: var(--navy-900);
+  filter: brightness(1.06);
   transform: translateY(-1px);
 }
 

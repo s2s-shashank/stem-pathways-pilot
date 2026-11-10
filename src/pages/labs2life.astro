@@ -302,9 +302,9 @@ const renderGroups = groups.map((g) => ({
         <span class="eyebrow">{t('l2l.match.eyebrow', lang)}</span>
         <h2>{t('l2l.match.h2', lang)}</h2>
         <p class="lede">{t('l2l.match.lede', lang)}</p>
-        <button type="button" class="btn btn--sun" data-open-finder>
+        <a class="btn btn--sun" href={withBase("/explore")}>
           {t('home.ctaFinder', lang)}
-        </button>
+        </a>
       </div>
     </div>
   </section>

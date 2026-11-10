@@ -4,7 +4,7 @@ import { GATE_STORAGE_KEY } from '../lib/gate';
 import { withBase } from '../lib/url';
 import { lastUpdated, formatDate } from '../lib/data';
 import { t, type Lang } from '../i18n';
-import CareerFinder from '../components/CareerFinder.astro';
+import SiteGuide from '../components/SiteGuide.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -136,10 +136,11 @@ const esPath = withBase(`/es${plainPath === '/' ? '' : plainPath}`);
               <a href={esPath} lang="es" data-lang-link aria-current={lang === 'es' ? 'true' : undefined}>Español</a>
             </div>
           </details>
+          <a class="nav__explore" href={withBase("/explore")}>{t('home.ctaFinder', lang)}</a>
           <button
             type="button"
             class="nav__help"
-            data-open-finder
+            data-open-guide
             aria-label={t('nav.help', lang)}
             title={t('nav.help', lang)}
           >
@@ -181,6 +182,7 @@ const esPath = withBase(`/es${plainPath === '/' ? '' : plainPath}`);
             <h2>{t('footer.learn', lang)}</h2>
             <ul>
               <li><a href={withBase("/labs2life")}>{t('footer.labs2', lang)}</a></li>
+              <li><a href={withBase("/explore")}>{t('footer.exploreCareers', lang)}</a></li>
               <li><a href={withBase("/quiz")}>{t('footer.quiz', lang)}</a></li>
               <li><a href={withBase("/careers")}>{t('footer.careers', lang)}</a></li>
               <li><a href={withBase("/glossary")}>{t('footer.glossary', lang)}</a></li>
@@ -197,8 +199,8 @@ const esPath = withBase(`/es${plainPath === '/' ? '' : plainPath}`);
       </div>
     </footer>
 
-    <!-- The How to Browse This Site popup. It opens itself once, on the home page. -->
-    <CareerFinder autoOpen={isHome} lang={lang} />
+    <!-- The How to Browse This Site guide. It opens itself once, on the home page. -->
+    <SiteGuide autoOpen={isHome} lang={lang} />
     {
       gateTarget && (
         <script is:inline>

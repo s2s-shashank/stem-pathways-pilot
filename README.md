@@ -22,10 +22,10 @@ src/               The Astro site
   data/generated/  JSON written by the pipeline - NOT in the repository.
                    The workflow downloads it before every build, so you
                    run the pipeline yourself when you work locally.
-  data/finder-questions.ts  The Career Finder questions
-  pages/           /, /nj, /ny, /pa, /compare, /careers, /quiz, /sources
+  data/profiler.ts The Career Exploration activities and interest types
+  pages/           /, /nj, /ny, /pa, /compare, /careers, /explore, /quiz, /sources
   components/      Charts and page sections (all inline SVG or CSS)
-tools/             Tests for the Career Finder and the data pipeline
+tools/             Tests for Career Exploration and the data pipeline
 ```
 
 The pipeline runs on every push and once a day, commits nothing, and the
@@ -108,50 +108,53 @@ Careers are grouped by the U.S. Department of Labor's SOC 2018 major groups
 first two digits of the SOC code, so `taxonomy.py` lists codes only. The
 group names, colours and icons live in `src/data/categories.json`.
 
-## The Career Finder
+## Career Exploration
 
-Every visitor to the site gets a popup that asks eight quick questions in a
-carousel - "if you could have one superpower for your workday, which would
-you grab?", "your robot friend needs a job, where does it go?" - and then
-shows the STEM jobs that match their answers, with the salary, the job
-growth and how many people do each job.
+The yellow **Career Exploration** button (home page, header, Labs2Life) opens
+`/explore`, an interest quiz in the style of the U.S. Department of Labor's
+[O*NET Interest Profiler](https://www.onetcenter.org/IP.html). The student rates
+everyday activities - "fix a broken machine", "study cells under a
+microscope", "lead a team" - from *Love it* to *No way*. The answers become
+a score for each of six interest types (Realistic, Investigative, Artistic,
+Social, Enterprising, Conventional), and the page ranks every STEM career in
+the data against that profile, with real pay, job growth and people employed.
 
-It works with no server and no tracking:
+What it adds on top of the O*NET version:
 
-- `src/data/finder-questions.ts` holds the questions and the interest tags
-  each answer points at.
-- `src/lib/finder.ts` tags all 174 occupations with the same vocabulary and
-  fills each fun fact with a real salary at build time.
-- `src/pages/finder-data.json.ts` writes one small JSON file (questions +
-  occupations + three numbers per state). The browser fetches it the first
-  time the popup opens, so no page carries the data.
-- `src/lib/finder-score.ts` scores the answers against that file in the
-  browser and spreads the results across categories so one field cannot
-  take over the whole list.
+- a quick (30 activities) or full (60) quiz, one activity at a time, with
+  keyboard answers (1-5) and a back button;
+- results filtered by how much school a student wants (high school plus
+  training, 2-year, 4-year, master's or higher) and by field, and sorted by
+  match, pay or growth;
+- pay and job counts for New Jersey, New York, Pennsylvania or all three;
+- a results link: the scores live in the page address (`#p=72-90-35-60-41-55`),
+  so a student can bookmark, share or print them;
+- English and Spanish (`/es/explore`).
 
-Your answers are never stored or sent anywhere: they live in memory until the
-page is refreshed, so every visit is a fresh run through the quiz. The only
-thing the site writes to your device is one flag that says "this browser has
-already seen the popup", so it does not open by itself twice. The popup opens
-by itself once, on the home page; the "Find my career" button opens it on any
-page. The home page shows the results from the run that just happened - until
-the next refresh.
+How it works, with no server and no tracking:
 
-Every number a student sees comes from the same government data as the rest
-of the site, and every fun fact in the quiz is filled in with a real
-occupation and a real salary at build time.
+- `src/data/profiler.ts` holds the six interest types and the 60 activities
+  (English and Spanish). The first 30 in the deck hold five of each type, so
+  they are the quick quiz.
+- `src/lib/profiler-codes.ts` gives every occupation a three-letter interest
+  code such as `IRC`, matched by SOC code prefix. **These codes are our own
+  estimate from the kind of work, not O*NET's published table**, and the page
+  says so. It also groups specialties (all the physician types are one
+  family), maps education to four school steps and skips "All Other" lines.
+- `src/lib/profiler-jobs.ts` merges the three state files into one job list.
+- `src/lib/profiler-score.ts` is the pure matching logic: type scores, the
+  centred weighted match (letters count 3, 2 and 1), filters, sorting and the
+  results link.
+- `src/pages/explore.astro` (and `src/pages/es/explore.astro`) draws the quiz
+  and results in the browser from one JSON block in the page.
+
+Answers are never stored or sent anywhere. The only things the site writes to a
+device are the password-gate flag and the flag that says the "how to browse"
+guide has been shown once.
 
 ```bash
-npm test               # scoring rules
-npm run test:browser   # the whole flow in a real browser
+npm test               # interest codes, scoring, filters, results link
 npm run test:data      # posting dates and the "keep the last numbers" rule
-```
-
-The browser test needs Playwright once:
-
-```bash
-npm install --no-save playwright
-npx playwright install chromium
 ```
 
 ## Live site

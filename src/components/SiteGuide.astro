@@ -4,7 +4,7 @@
  *
  * One simple panel that shows the structure of the website with links to
  * every section. Opens itself once on the home page, and any time the "?"
- * button in the header is clicked.
+ * button in the header is clicked (any element with data-open-guide).
  */
 import { withBase } from '../lib/url';
 import { t, type Lang } from '../i18n';
@@ -45,6 +45,7 @@ const sections = [
     title: t('guide.tools.title', lang),
     blurb: t('guide.tools.blurb', lang),
     links: [
+      { label: t('guide.tools.explore', lang), url: '/explore' },
       { label: t('guide.tools.quiz', lang), url: '/quiz' },
       { label: t('guide.tools.sources', lang), url: '/sources' },
     ],
@@ -61,26 +62,25 @@ const sections = [
 ---
 
 <div
-  class="finder guide"
-  id="finder"
+  class="guide"
+  id="guide"
   hidden
-  data-state="closed"
   data-auto-open={autoOpen ? 'true' : 'false'}
   role="dialog"
   aria-modal="true"
   aria-label={t('guide.title', lang)}
 >
-  <div class="finder__scrim" data-close></div>
+  <div class="guide__scrim" data-close></div>
 
-  <div class="finder__panel" role="document">
-    <header class="finder__head">
-      <div class="finder__brand">
-        <span class="finder__spark" aria-hidden="true">🧭</span>
+  <div class="guide__panel" role="document">
+    <header class="guide__head">
+      <div class="guide__brand">
+        <span aria-hidden="true">🧭</span>
         <span>{t('guide.title', lang)}</span>
       </div>
       <button
         type="button"
-        class="finder__x"
+        class="guide__x"
         data-close
         aria-label={t('guide.close', lang)}
       >
@@ -88,8 +88,8 @@ const sections = [
       </button>
     </header>
 
-    <div class="finder__viewport guide__body">
-      <p class="finder__lede">
+    <div class="guide__body">
+      <p class="guide__lede">
         {t('guide.lede', lang)}
       </p>
 
@@ -116,25 +116,23 @@ const sections = [
 </div>
 
 <script>
-  const root = document.getElementById('finder');
+  const root = document.getElementById('guide');
   let lastFocused: HTMLElement | null = null;
 
   function open() {
     if (!root) return;
     lastFocused = document.activeElement as HTMLElement;
     root.hidden = false;
-    root.dataset.state = 'open';
-    document.body.classList.add('finder-open');
+    document.body.classList.add('guide-open');
     requestAnimationFrame(() => {
-      root.querySelector<HTMLElement>('.finder__x')?.focus();
+      root.querySelector<HTMLElement>('.guide__x')?.focus();
     });
   }
 
   function close() {
     if (!root) return;
     root.hidden = true;
-    root.dataset.state = 'closed';
-    document.body.classList.remove('finder-open');
+    document.body.classList.remove('guide-open');
     lastFocused?.focus?.();
   }
 
@@ -171,7 +169,7 @@ const sections = [
 
   // The "?" button in the header opens the guide from any page.
   document.addEventListener('click', (e) => {
-    if ((e.target as HTMLElement).closest('[data-open-finder]')) open();
+    if ((e.target as HTMLElement).closest('[data-open-guide]')) open();
   });
 
   // Open itself once, on the home page only, per browser. After the logo
@@ -198,35 +196,143 @@ const sections = [
 </script>
 
 <style>
+  .guide {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: grid;
+    place-items: center;
+    padding: var(--space-s);
+  }
+
+  /* display:grid above would otherwise beat the hidden attribute. */
+  .guide[hidden] {
+    display: none;
+  }
+
+  .guide__scrim {
+    position: absolute;
+    inset: 0;
+    background: rgb(11 18 32 / 62%);
+    backdrop-filter: blur(4px);
+    animation: guide-fade 0.2s ease;
+  }
+
+  .guide__panel {
+    position: relative;
+    width: min(100%, 46rem);
+    max-height: min(92vh, 54rem);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: var(--paper);
+    color: var(--ink-900);
+    border-radius: var(--radius-l);
+    box-shadow: var(--shadow-l);
+    animation: guide-pop 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  }
+
+  .guide__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-s);
+    padding: var(--space-s) var(--space-m);
+    border-bottom: 1px solid var(--paper-sunk);
+  }
+
+  .guide__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+
+  .guide__x {
+    font: inherit;
+    font-size: 1rem;
+    line-height: 1;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--paper-sunk);
+    background: var(--paper);
+    color: var(--ink-500);
+    cursor: pointer;
+  }
+
+  .guide__x:hover {
+    background: var(--paper-alt);
+    color: var(--ink-900);
+  }
+
   .guide__body {
-    padding-block: 0 var(--space-s);
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 var(--space-m) var(--space-s);
   }
-  .guide__body .finder__lede {
-    margin-bottom: var(--space-2xs);
+
+  .guide__lede {
+    color: var(--ink-700);
+    margin: var(--space-m) 0 var(--space-2xs);
   }
+
   .guide__section {
     border-top: 1px solid var(--paper-sunk);
     padding-top: 0.55rem;
     margin-top: 0.55rem;
   }
+
   .guide__title {
     font-size: var(--step-0);
     margin: 0 0 0.15rem;
   }
+
   .guide__blurb {
     margin: 0 0 0.3rem;
     color: var(--ink-500);
     font-size: var(--step--1);
   }
+
   .guide__links {
     margin: 0;
   }
+
   .guide__link {
     font-weight: 600;
     font-size: var(--step--1);
   }
+
   .guide__sep {
     margin-inline: 0.45rem;
     color: var(--ink-300);
+  }
+
+  :global(body.guide-open) {
+    overflow: hidden;
+  }
+
+  @keyframes guide-fade {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes guide-pop {
+    from {
+      opacity: 0;
+      transform: translateY(14px) scale(0.98);
+    }
+  }
+
+  @media (max-width: 560px) {
+    .guide__panel {
+      max-height: 94vh;
+      border-radius: var(--radius-m);
+    }
+    .guide__body {
+      padding-inline: var(--space-s);
+    }
   }
 </style>

@@ -1,0 +1,1363 @@
+---
+/**
+ * Career Exploration: an interest quiz that points students at STEM careers.
+ *
+ * The student rates everyday activities; the browser turns the answers into
+ * six interest scores and ranks every career in the data against them. The
+ * matching rules live in src/lib/profiler-score.ts. Nothing is stored or
+ * sent anywhere: the results live in the page address (#p=...).
+ */
+import Base from '../layouts/Base.astro';
+import { withBase } from '../lib/url';
+import { allStateData } from '../lib/data';
+import { describe } from '../lib/descriptions';
+import { CATEGORIES } from '../data/states';
+import { QUICK_PER_TYPE, ACTIVITIES } from '../data/profiler';
+import { buildJobs } from '../lib/profiler-jobs';
+import { t, tAll, jobTitle, CATEGORY_LABELS_ES, type Lang } from '../i18n';
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = 'en' } = Astro.props;
+
+const jobs = buildJobs(allStateData(), (soc, category) => describe(soc, category).what).map(
+  (j) => ({ ...j, title: jobTitle(j.title, lang) }),
+);
+
+const categories = CATEGORIES.filter((c) => jobs.some((j) => j.category === c.id)).map((c) => ({
+  id: c.id,
+  icon: c.icon,
+  color: c.color,
+  label: lang === 'es' ? (CATEGORY_LABELS_ES[c.id] ?? c.label) : c.label,
+}));
+
+const payload = {
+  lang,
+  ui: tAll('ex.', lang),
+  jobs,
+  categories,
+  careersUrl: withBase(lang === 'es' ? '/es/careers' : '/careers'),
+};
+// "<" is escaped so no job title can close the script tag.
+const json = JSON.stringify(payload).replace(/</g, '\\u003c');
+
+const fullCount = ACTIVITIES.length;
+const quickCount = QUICK_PER_TYPE * 6;
+const SCALE = [
+  { value: 4, emoji: '😍', key: 'ex.a.love' },
+  { value: 3, emoji: '🙂', key: 'ex.a.like' },
+  { value: 2, emoji: '😐', key: 'ex.a.meh' },
+  { value: 1, emoji: '🙁', key: 'ex.a.dislike' },
+  { value: 0, emoji: '🚫', key: 'ex.a.no' },
+] as const;
+---
+
+<Base title={t('ex.title', lang)} description={t('ex.description', lang)} lang={lang}>
+  <section class="hero">
+    <div class="wrap">
+      <span class="hero__tag"><span aria-hidden="true">●</span> {t('ex.tag', lang)}</span>
+      <h1>{t('ex.h1', lang)}</h1>
+      <p class="lede">{t('ex.lede', lang)}</p>
+      {lang === 'es' && <p class="stamp">{t('es.notice', lang)}</p>}
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <noscript>
+        <p class="lede">
+          {t('ex.noscript', lang)}
+          <a href={withBase('/careers')}>{t('nav.browseCareers', lang)}</a>
+        </p>
+      </noscript>
+
+      <div id="explore" data-lang={lang}>
+        <!-- 1. Intro -->
+        <div class="ex-stage" data-stage="intro">
+          <div class="grid grid--3 ex-steps">
+            {
+              [1, 2, 3].map((n) => (
+                <article class="card card--flat">
+                  <h2 class="card__title">{t(`ex.step${n}.h` as 'ex.step1.h', lang)}</h2>
+                  <p class="muted">{t(`ex.step${n}.p` as 'ex.step1.p', lang)}</p>
+                </article>
+              ))
+            }
+          </div>
+
+          <form class="ex-card ex-start" id="ex-start">
+            <fieldset class="ex-len">
+              <legend>{t('ex.len.legend', lang)}</legend>
+              <label class="ex-len__opt">
+                <input type="radio" name="length" value="quick" checked />
+                <span>
+                  <strong>{t('ex.len.quick', lang)}</strong>
+                  <span class="muted">{t('ex.len.quickNote', lang, { n: quickCount })}</span>
+                </span>
+              </label>
+              <label class="ex-len__opt">
+                <input type="radio" name="length" value="full" />
+                <span>
+                  <strong>{t('ex.len.full', lang)}</strong>
+                  <span class="muted">{t('ex.len.fullNote', lang, { n: fullCount })}</span>
+                </span>
+              </label>
+            </fieldset>
+            <button type="submit" class="btn btn--sun">{t('ex.start', lang)}</button>
+          </form>
+
+          <p class="source-note">{t('ex.privacy', lang)}</p>
+          <p class="source-note">
+            {t('ex.credit.before', lang)}<a
+              href="https://www.onetcenter.org/IP.html"
+              rel="noopener noreferrer">{t('ex.credit.link', lang)}</a
+            >{t('ex.credit.after', lang)}
+          </p>
+        </div>
+
+        <!-- 2. Questions -->
+        <div class="ex-stage" data-stage="quiz" hidden>
+          <div class="ex-card ex-quiz" aria-label={t('ex.q.label', lang)} role="group">
+            <div
+              class="ex-progress"
+              id="ex-progress"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="0"
+            >
+              <span id="ex-fill"></span>
+            </div>
+            <p class="ex-count" id="ex-count" tabindex="-1"></p>
+
+            <div class="ex-activity" id="ex-activity" aria-live="polite">
+              <span class="ex-activity__emoji" id="ex-emoji" aria-hidden="true"></span>
+              <p class="ex-activity__text" id="ex-text"></p>
+            </div>
+
+            <p class="ex-ask">{t('ex.q.ask', lang)}</p>
+            <div class="ex-scale" role="group" aria-label={t('ex.q.ask', lang)}>
+              {
+                SCALE.map((s, i) => (
+                  <button type="button" class="ex-scale__btn" data-value={s.value}>
+                    <span class="ex-scale__emoji" aria-hidden="true">{s.emoji}</span>
+                    <span class="ex-scale__label">{t(s.key, lang)}</span>
+                    <kbd aria-hidden="true">{i + 1}</kbd>
+                  </button>
+                ))
+              }
+            </div>
+
+            <div class="ex-quiz__foot">
+              <button type="button" class="ex-link" id="ex-back">← {t('ex.back', lang)}</button>
+              <span class="ex-tip">{t('ex.q.tip', lang)}</span>
+              <button type="button" class="ex-link" id="ex-restart">{t('ex.restart', lang)}</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Results -->
+        <div class="ex-stage" data-stage="results" hidden>
+          <div class="section-head">
+            <span class="eyebrow">{t('ex.r.eyebrow', lang)}</span>
+            <h2 id="ex-results-h" tabindex="-1">{t('ex.r.h2', lang)}</h2>
+            <p class="lede" id="ex-lede"></p>
+          </div>
+
+          <div class="ex-profile">
+            <ul class="ex-bars" id="ex-bars"></ul>
+            <div class="ex-code">
+              <span class="ex-code__label">{t('ex.r.code', lang)}</span>
+              <strong class="ex-code__value" id="ex-code"></strong>
+            </div>
+          </div>
+
+          <div class="ex-top" id="ex-top"></div>
+
+          <p class="ex-flat" id="ex-flat" hidden>{t('ex.r.flat', lang)}</p>
+
+          <div id="ex-matches">
+            <div class="ex-toolbar" id="ex-toolbar"></div>
+            <p class="ex-results-count" id="ex-results-count" role="status" aria-live="polite"></p>
+            <div class="ex-cards" id="ex-cards"></div>
+            <p class="ex-more">
+              <button type="button" class="btn btn--outline" id="ex-more" hidden>
+                {t('ex.more', lang)}
+              </button>
+            </p>
+          </div>
+
+          <div class="ex-actions">
+            <button type="button" class="btn btn--primary" id="ex-copy">{t('ex.copy', lang)}</button>
+            <button type="button" class="btn btn--outline" id="ex-print">{t('ex.print', lang)}</button>
+            <button type="button" class="btn btn--outline" id="ex-retake">{t('ex.retake', lang)}</button>
+            <span class="ex-copied" id="ex-copied" role="status" aria-live="polite"></span>
+          </div>
+
+          <aside class="ex-method">
+            <h3>{t('ex.method.h', lang)}</h3>
+            <p class="muted">{t('ex.method.p', lang)}</p>
+            <p class="muted">
+              {t('ex.credit.before', lang)}<a
+                href="https://www.onetcenter.org/IP.html"
+                rel="noopener noreferrer">{t('ex.credit.link', lang)}</a
+              >{t('ex.credit.after', lang)}
+            </p>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script is:inline type="application/json" id="explore-data" set:html={json} />
+
+<script>
+  import { ACTIVITIES, TYPES, TYPE_ORDER, deckFor, type TypeId } from '../data/profiler';
+  import {
+    MIN_FIT,
+    applyFilters,
+    decodeScores,
+    encodeScores,
+    fitTier,
+    foldFamilies,
+    growthLabel,
+    isFlat,
+    money,
+    profileCode,
+    profileScores,
+    rankJobs,
+    rankTypes,
+    sortRanked,
+    stateNumbers,
+    type Job,
+    type Ranked,
+    type Scores,
+    type SortKey,
+  } from '../lib/profiler-score';
+
+  interface Category {
+    id: string;
+    icon: string;
+    color: string;
+    label: string;
+  }
+  interface Payload {
+    lang: 'en' | 'es';
+    ui: Record<string, string>;
+    jobs: Job[];
+    categories: Category[];
+    careersUrl: string;
+  }
+
+  const root = document.getElementById('explore');
+  const dataEl = document.getElementById('explore-data');
+  if (root && dataEl) init(root, JSON.parse(dataEl.textContent || '{}') as Payload);
+
+  function init(root: HTMLElement, data: Payload) {
+    const { lang, ui, jobs, categories, careersUrl } = data;
+    const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+    const fmt = (key: string, vars: Record<string, string | number> = {}) =>
+      Object.entries(vars).reduce((s, [k, v]) => s.replaceAll(`{${k}}`, String(v)), ui[key] ?? key);
+    const esc = (s: string) =>
+      s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const typeName = (id: TypeId) => TYPES[id].name[lang];
+    const and = (items: string[]) =>
+      items.length < 2
+        ? items.join('')
+        : `${items.slice(0, -1).join(', ')} ${lang === 'es' ? 'y' : 'and'} ${items[items.length - 1]}`;
+
+    const STATES = ['nj', 'ny', 'pa', 'all'];
+    const PAGE = 12;
+    const SCHOOL_STEPS = [1, 2, 3, 4];
+
+    let deck = deckFor('quick');
+    let values: (number | undefined)[] = [];
+    let index = 0;
+    let scores: Scores = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
+    let state = 'nj';
+    let sort: SortKey = 'fit';
+    const school = new Set<number>();
+    const fields = new Set<string>();
+    let shown = PAGE;
+    let ranked: Ranked[] = [];
+
+    /* ---------------- stages ---------------- */
+
+    function show(stage: 'intro' | 'quiz' | 'results', focus?: string) {
+      root.querySelectorAll<HTMLElement>('.ex-stage').forEach((el) => {
+        el.hidden = el.dataset.stage !== stage;
+      });
+      if (focus) $(focus).focus({ preventScroll: true });
+      root.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    /* ---------------- quiz ---------------- */
+
+    function renderQuestion() {
+      const a = deck[index];
+      $('ex-emoji').textContent = a.emoji;
+      $('ex-text').textContent = a.text[lang];
+      $('ex-count').textContent = fmt('ex.q.count', { n: index + 1, total: deck.length });
+      $('ex-fill').style.width = `${(index / deck.length) * 100}%`;
+      $('ex-progress').setAttribute('aria-valuenow', String(Math.round((index / deck.length) * 100)));
+      $('ex-back').toggleAttribute('disabled', index === 0);
+
+      root.querySelectorAll<HTMLElement>('.ex-scale__btn').forEach((btn) => {
+        btn.classList.toggle('is-picked', Number(btn.dataset.value) === values[index]);
+      });
+      // Restart the pop-in animation.
+      const card = $('ex-activity');
+      card.classList.remove('is-in');
+      void card.offsetWidth;
+      card.classList.add('is-in');
+    }
+
+    function startQuiz(length: 'quick' | 'full') {
+      deck = deckFor(length);
+      values = [];
+      index = 0;
+      history.replaceState(null, '', location.pathname + location.search);
+      show('quiz');
+      renderQuestion();
+    }
+
+    function answer(value: number) {
+      values[index] = value;
+      if (index + 1 < deck.length) {
+        index += 1;
+        renderQuestion();
+      } else {
+        const answers = deck.map((a, i) => ({ type: a.type, value: values[i] ?? 2 }));
+        scores = profileScores(answers);
+        showResults(true);
+      }
+    }
+
+    function back() {
+      if (index > 0) {
+        index -= 1;
+        renderQuestion();
+      }
+    }
+
+    /* ---------------- results ---------------- */
+
+    function saveToAddress() {
+      history.replaceState(null, '', `#p=${encodeScores(scores)}&s=${state}`);
+    }
+
+    function showResults(save: boolean) {
+      if (save) saveToAddress();
+      ranked = rankJobs(scores, jobs).filter((r) => r.fit >= MIN_FIT);
+      const order = rankTypes(scores);
+      const flat = isFlat(scores);
+
+      $('ex-lede').textContent = flat
+        ? ''
+        : fmt('ex.r.lede', { top: and(order.slice(0, 3).map(typeName)) });
+      $('ex-code').textContent = profileCode(scores);
+      renderBars(order);
+      renderTop(order);
+      $('ex-flat').hidden = !flat;
+      $('ex-matches').hidden = flat;
+      $('ex-top').hidden = flat;
+
+      renderToolbar();
+      shown = PAGE;
+      renderCards();
+      show('results', 'ex-results-h');
+    }
+
+    function renderBars(order: TypeId[]) {
+      $('ex-bars').innerHTML = TYPE_ORDER.map((id) => {
+        const rank = order.indexOf(id);
+        return `
+          <li class="ex-bar${rank < 3 ? ' is-top' : ''}" style="--c:${TYPES[id].color}">
+            <span class="ex-bar__name">
+              <span aria-hidden="true">${TYPES[id].emoji}</span> ${esc(typeName(id))}
+              <span class="ex-bar__letter" aria-hidden="true">${id}</span>
+            </span>
+            <span class="ex-bar__track" aria-hidden="true"><span style="width:${scores[id]}%"></span></span>
+            <span class="ex-bar__pct">${scores[id]}%</span>
+          </li>`;
+      }).join('');
+    }
+
+    function renderTop(order: TypeId[]) {
+      $('ex-top').innerHTML = order
+        .slice(0, 3)
+        .map(
+          (id, i) => `
+          <article class="ex-type" style="--c:${TYPES[id].color}">
+            <span class="ex-type__rank" aria-hidden="true">${i + 1}</span>
+            <h3><span aria-hidden="true">${TYPES[id].emoji}</span> ${esc(typeName(id))}</h3>
+            <p class="muted">${esc(TYPES[id].blurb[lang])}</p>
+          </article>`,
+        )
+        .join('');
+    }
+
+    function chip(kind: string, value: string, label: string, on: boolean, extra = '') {
+      return `<button type="button" class="ex-chip${on ? ' is-on' : ''}" data-kind="${kind}"
+        data-value="${esc(value)}" aria-pressed="${on}" ${extra}>${label}</button>`;
+    }
+
+    function renderToolbar() {
+      const stateChips = STATES.map((s) =>
+        chip('state', s, esc(ui[`ex.state.${s}`]), s === state),
+      ).join('');
+      const schoolChips = SCHOOL_STEPS.map((n) =>
+        chip('school', String(n), esc(ui[`ex.z${n}`]), school.has(n)),
+      ).join('');
+      const fieldChips = categories
+        .map((c) =>
+          chip(
+            'field',
+            c.id,
+            `<span aria-hidden="true">${c.icon}</span> ${esc(c.label)}`,
+            fields.has(c.id),
+            `style="--c:${c.color}"`,
+          ),
+        )
+        .join('');
+      const sortOptions = (['fit', 'pay', 'growth'] as SortKey[])
+        .map(
+          (k) =>
+            `<option value="${k}"${k === sort ? ' selected' : ''}>${esc(
+              ui[`ex.f.sort${k[0].toUpperCase()}${k.slice(1)}`],
+            )}</option>`,
+        )
+        .join('');
+
+      $('ex-toolbar').innerHTML = `
+        <div class="ex-filter" role="group" aria-labelledby="ex-f-state">
+          <span class="ex-filter__label" id="ex-f-state">${esc(ui['ex.f.state'])}</span>
+          <div class="ex-chips">${stateChips}</div>
+        </div>
+        <div class="ex-filter" role="group" aria-labelledby="ex-f-school">
+          <span class="ex-filter__label" id="ex-f-school">${esc(ui['ex.f.school'])}
+            <span class="ex-filter__hint">${esc(ui['ex.f.hint'])}</span></span>
+          <div class="ex-chips">${schoolChips}</div>
+        </div>
+        <div class="ex-filter" role="group" aria-labelledby="ex-f-field">
+          <span class="ex-filter__label" id="ex-f-field">${esc(ui['ex.f.field'])}
+            <span class="ex-filter__hint">${esc(ui['ex.f.hint'])}</span></span>
+          <div class="ex-chips">${fieldChips}</div>
+        </div>
+        <div class="ex-filter ex-filter--row">
+          <label class="ex-filter__label" for="ex-sort">${esc(ui['ex.f.sort'])}</label>
+          <select id="ex-sort" class="ex-select">${sortOptions}</select>
+          <button type="button" class="ex-link" id="ex-clear">${esc(ui['ex.f.clear'])}</button>
+        </div>`;
+    }
+
+    function cardHtml(r: Ranked): string {
+      const { job } = r;
+      const cat = categories.find((c) => c.id === job.category);
+      const n = stateNumbers(job.states, state);
+      const hourly = n.wage ? Math.round(n.wage / 2080) : 0;
+      const tier = fitTier(r.fit);
+      const where = state === 'all' ? ui['ex.state.all'].toLowerCase() : ui[`ex.state.${state}`];
+      const href = `${careersUrl}/${job.soc}`;
+      const dots = [0, 1, 2]
+        .map((i) => `<span class="${i < (tier === 'great' ? 3 : tier === 'good' ? 2 : 1) ? 'is-on' : ''}"></span>`)
+        .join('');
+      const because = r.shared
+        .map(
+          (id) =>
+            `<span class="ex-tag" style="--c:${TYPES[id].color}"><span aria-hidden="true">${TYPES[id].emoji}</span> ${esc(typeName(id))}</span>`,
+        )
+        .join('');
+      const related = r.related.length
+        ? `<p class="ex-job__related">${esc(
+            fmt('ex.card.also', {
+              list:
+                r.related.slice(0, 3).join(', ') +
+                (r.related.length > 3 ? `, ${fmt('ex.card.alsoMore', { n: r.related.length - 3 })}` : ''),
+            }),
+          )}</p>`
+        : '';
+      const path = job.school
+        ? `<p class="ex-job__path">${esc(fmt('ex.card.path', { school: ui[`ex.z${job.school}`] }))}</p>`
+        : '';
+      const growthWord = ui[`ex.g.${growthLabel(n.growth)}`];
+
+      return `
+        <article class="ex-job" style="--c:${cat?.color ?? '#6b7a94'}">
+          <div class="ex-job__top">
+            <span class="ex-fit ex-fit--${tier}">
+              <span class="ex-fit__dots" aria-hidden="true">${dots}</span>${esc(ui[`ex.fit.${tier}`])}
+            </span>
+          </div>
+          <div class="ex-job__head">
+            <span class="ex-job__icon" aria-hidden="true">${cat?.icon ?? '⚗️'}</span>
+            <div>
+              <h3 class="ex-job__title"><a href="${href}">${esc(job.title)}</a></h3>
+              <p class="ex-job__cat">${esc(cat?.label ?? '')}</p>
+            </div>
+          </div>
+          <p class="ex-job__what">${esc(job.what)}</p>
+          <p class="ex-job__because">${esc(ui['ex.card.because'])} ${because}</p>
+          <dl class="ex-job__stats">
+            <div>
+              <dt>${esc(ui['ex.card.pay'])}</dt>
+              <dd class="ex-job__big">${money(n.wage)}<span>${esc(ui['ex.card.perYear'])}</span></dd>
+              <dd class="ex-job__sub">${hourly ? esc(fmt('ex.card.perHour', { n: money(hourly) })) : ''}</dd>
+            </div>
+            <div>
+              <dt>${esc(ui['ex.card.growth'])}</dt>
+              <dd class="ex-job__big ${n.growth >= 8 ? 'is-good' : n.growth < 0 ? 'is-down' : ''}">${
+                n.growth >= 0 ? '+' : '-'
+              }${Math.abs(n.growth).toFixed(1)}%</dd>
+              <dd class="ex-job__sub">${esc(growthWord)}</dd>
+            </div>
+            <div>
+              <dt>${esc(ui['ex.card.people'])}</dt>
+              <dd class="ex-job__big">${n.people.toLocaleString('en-US')}</dd>
+              <dd class="ex-job__sub">${esc(fmt('ex.card.in', { where }))}</dd>
+            </div>
+          </dl>
+          ${path}
+          ${related}
+          <p class="ex-job__link"><a href="${href}">${esc(ui['ex.card.link'])} →</a></p>
+        </article>`;
+    }
+
+    function renderCards() {
+      const list = foldFamilies(
+        sortRanked(applyFilters(ranked, { school, categories: fields }), sort, state),
+      );
+      $('ex-cards').innerHTML = list.slice(0, shown).map(cardHtml).join('');
+      $('ex-results-count').textContent = list.length
+        ? fmt('ex.count', { shown: Math.min(shown, list.length), n: list.length })
+        : ui['ex.none'];
+      $('ex-more').hidden = shown >= list.length;
+    }
+
+    function toggle(set: Set<string> | Set<number>, value: string | number) {
+      const s = set as Set<string | number>;
+      if (!s.delete(value)) s.add(value);
+    }
+
+    /* ---------------- events ---------------- */
+
+    $('ex-start').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const picked = new FormData(e.target as HTMLFormElement).get('length');
+      startQuiz(picked === 'full' ? 'full' : 'quick');
+    });
+
+    root.querySelectorAll<HTMLElement>('.ex-scale__btn').forEach((btn) =>
+      btn.addEventListener('click', () => answer(Number(btn.dataset.value))),
+    );
+    $('ex-back').addEventListener('click', back);
+    $('ex-restart').addEventListener('click', () => show('intro'));
+    $('ex-retake').addEventListener('click', () => {
+      history.replaceState(null, '', location.pathname + location.search);
+      show('intro');
+    });
+    $('ex-print').addEventListener('click', () => window.print());
+
+    $('ex-copy').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(location.href);
+        $('ex-copied').textContent = ui['ex.copied'];
+        setTimeout(() => ($('ex-copied').textContent = ''), 2500);
+      } catch {
+        window.prompt('', location.href);
+      }
+    });
+
+    $('ex-more').addEventListener('click', () => {
+      shown += PAGE;
+      renderCards();
+    });
+
+    $('ex-toolbar').addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('#ex-clear')) {
+        school.clear();
+        fields.clear();
+      } else {
+        const btn = target.closest<HTMLElement>('.ex-chip');
+        if (!btn) return;
+        const { kind, value = '' } = btn.dataset;
+        if (kind === 'state') {
+          state = value;
+          saveToAddress();
+        } else if (kind === 'school') toggle(school, Number(value));
+        else toggle(fields, value);
+      }
+      shown = PAGE;
+      renderToolbar();
+      renderCards();
+    });
+
+    $('ex-toolbar').addEventListener('change', (e) => {
+      const el = e.target as HTMLSelectElement;
+      if (el.id !== 'ex-sort') return;
+      sort = el.value as SortKey;
+      shown = PAGE;
+      renderCards();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if ($('explore').querySelector<HTMLElement>('[data-stage="quiz"]')?.hidden) return;
+      const tag = (document.activeElement?.tagName ?? '').toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+      if (e.key === 'ArrowLeft') back();
+      const n = ['1', '2', '3', '4', '5'].indexOf(e.key);
+      if (n >= 0) answer(4 - n);
+    });
+
+    /* ---------------- start ---------------- */
+
+    // A results link opens straight on the results.
+    const params = new URLSearchParams(location.hash.slice(1));
+    const saved = decodeScores(params.get('p'));
+    if (saved) {
+      scores = saved;
+      const s = params.get('s');
+      if (s && STATES.includes(s)) state = s;
+      showResults(false);
+    }
+  }
+</script>
+
+<style is:global>
+  #explore {
+    --ex-radius: var(--radius-l);
+    /* The sticky header must not cover the spot the script scrolls to. */
+    scroll-margin-top: 5rem;
+  }
+
+  /* Headings the script moves focus to after a stage change. */
+  #explore [tabindex='-1']:focus {
+    outline: none;
+  }
+
+  @media (max-width: 640px) {
+    #explore {
+      scroll-margin-top: 10rem;
+    }
+  }
+
+  .ex-stage[hidden] {
+    display: none;
+  }
+
+  .ex-card {
+    background: var(--paper);
+    border: var(--border);
+    border-radius: var(--ex-radius);
+    box-shadow: var(--shadow-s);
+    padding: var(--space-m);
+  }
+
+  /* Intro ---------------------------------------------------------- */
+  .ex-steps {
+    margin-bottom: var(--space-l);
+  }
+
+  .ex-start {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-m);
+    margin-bottom: var(--space-m);
+  }
+
+  .ex-len {
+    border: 0;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+  }
+
+  .ex-len legend {
+    font-weight: 700;
+    margin-bottom: var(--space-2xs);
+    padding: 0;
+  }
+
+  .ex-len__opt {
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+    padding: 0.7rem 1rem;
+    border: 2px solid var(--paper-sunk);
+    border-radius: var(--radius-m);
+    cursor: pointer;
+    min-width: 14rem;
+  }
+
+  .ex-len__opt span {
+    display: grid;
+  }
+
+  .ex-len__opt input {
+    margin-top: 0.3rem;
+    accent-color: var(--accent);
+  }
+
+  .ex-len__opt:has(input:checked) {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .ex-len__opt:has(input:focus-visible) {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* Quiz ----------------------------------------------------------- */
+  .ex-quiz {
+    max-width: 44rem;
+    margin-inline: auto;
+  }
+
+  .ex-progress {
+    height: 0.5rem;
+    border-radius: var(--radius-pill);
+    background: var(--paper-sunk);
+    overflow: hidden;
+  }
+
+  .ex-progress span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--accent);
+    border-radius: inherit;
+    transition: width 0.25s ease;
+  }
+
+  .ex-count {
+    margin: var(--space-2xs) 0 0;
+    font-size: var(--step--1);
+    font-weight: 700;
+    color: var(--ink-500);
+  }
+
+  .ex-activity {
+    display: grid;
+    justify-items: center;
+    text-align: center;
+    gap: var(--space-xs);
+    padding: var(--space-l) var(--space-s);
+    min-height: 12rem;
+    align-content: center;
+  }
+
+  .ex-activity.is-in {
+    animation: ex-in 0.22s ease;
+  }
+
+  @keyframes ex-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+
+  .ex-activity__emoji {
+    font-size: 3.5rem;
+    line-height: 1;
+  }
+
+  .ex-activity__text {
+    margin: 0;
+    font-size: var(--step-2);
+    font-weight: 800;
+    line-height: 1.2;
+    max-width: 24ch;
+  }
+
+  .ex-ask {
+    text-align: center;
+    margin: 0 0 var(--space-xs);
+    color: var(--ink-500);
+    font-weight: 600;
+  }
+
+  .ex-scale {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--space-2xs);
+  }
+
+  .ex-scale__btn {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 0.2rem;
+    padding: 0.8rem 0.3rem;
+    font: inherit;
+    font-weight: 700;
+    font-size: var(--step--1);
+    color: var(--ink-900);
+    background: var(--paper);
+    border: 2px solid var(--paper-sunk);
+    border-radius: var(--radius-m);
+    cursor: pointer;
+    transition: border-color 0.12s ease, background 0.12s ease, transform 0.12s ease;
+  }
+
+  .ex-scale__btn:hover,
+  .ex-scale__btn.is-picked {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    transform: translateY(-2px);
+  }
+
+  .ex-scale__emoji {
+    font-size: 1.9rem;
+    line-height: 1;
+  }
+
+  .ex-scale__btn kbd {
+    font: inherit;
+    font-size: 0.7rem;
+    color: var(--ink-500);
+    border: 1px solid var(--paper-sunk);
+    border-radius: 4px;
+    padding: 0 0.35rem;
+  }
+
+  .ex-quiz__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2xs) var(--space-s);
+    margin-top: var(--space-m);
+  }
+
+  .ex-tip {
+    font-size: var(--step--1);
+    color: var(--ink-500);
+  }
+
+  .ex-link {
+    font: inherit;
+    font-weight: 700;
+    font-size: var(--step--1);
+    background: none;
+    border: 0;
+    padding: 0.3rem 0;
+    color: var(--accent);
+    cursor: pointer;
+  }
+
+  .ex-link:hover {
+    text-decoration: underline;
+  }
+
+  .ex-link:disabled {
+    opacity: 0.35;
+    cursor: default;
+    text-decoration: none;
+  }
+
+  @media (max-width: 600px) {
+    .ex-scale {
+      grid-template-columns: 1fr;
+    }
+    .ex-scale__btn {
+      grid-template-columns: auto 1fr auto;
+      justify-items: start;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 0.9rem;
+    }
+    .ex-tip {
+      display: none;
+    }
+  }
+
+  /* Results: profile ---------------------------------------------- */
+  .ex-profile {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--space-l);
+    align-items: center;
+    margin-bottom: var(--space-m);
+  }
+
+  .ex-bars {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-2xs);
+  }
+
+  .ex-bar {
+    display: grid;
+    grid-template-columns: 13rem 1fr 3rem;
+    gap: var(--space-xs);
+    align-items: center;
+    font-weight: 600;
+    color: var(--ink-700);
+  }
+
+  .ex-bar.is-top {
+    color: var(--ink-900);
+    font-weight: 800;
+  }
+
+  .ex-bar__letter {
+    display: inline-grid;
+    place-items: center;
+    width: 1.3rem;
+    height: 1.3rem;
+    margin-left: 0.25rem;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    color: #fff;
+    background: var(--c);
+  }
+
+  .ex-bar__track {
+    height: 0.8rem;
+    border-radius: var(--radius-pill);
+    background: var(--paper-sunk);
+    overflow: hidden;
+  }
+
+  .ex-bar__track span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--c);
+    opacity: 0.55;
+  }
+
+  .ex-bar.is-top .ex-bar__track span {
+    opacity: 1;
+  }
+
+  .ex-bar__pct {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ex-code {
+    display: grid;
+    justify-items: center;
+    padding: var(--space-s) var(--space-l);
+    border: 2px dashed var(--paper-sunk);
+    border-radius: var(--radius-l);
+  }
+
+  .ex-code__label {
+    font-size: var(--step--1);
+    font-weight: 700;
+    color: var(--ink-500);
+  }
+
+  .ex-code__value {
+    font-size: var(--step-4);
+    letter-spacing: 0.12em;
+    line-height: 1.1;
+    color: var(--accent);
+  }
+
+  @media (max-width: 760px) {
+    .ex-profile {
+      grid-template-columns: 1fr;
+    }
+    .ex-bar {
+      grid-template-columns: 1fr 3rem;
+    }
+    .ex-bar__track {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+  }
+
+  .ex-top[hidden] {
+    display: none;
+  }
+
+  .ex-top {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: var(--space-s);
+    margin-bottom: var(--space-l);
+  }
+
+  .ex-type {
+    position: relative;
+    padding: var(--space-s) var(--space-s) var(--space-s) var(--space-m);
+    border: var(--border);
+    border-top: 5px solid var(--c);
+    border-radius: var(--radius-m);
+    background: var(--paper);
+  }
+
+  .ex-type h3 {
+    margin: 0 0 0.25rem;
+    font-size: var(--step-0);
+  }
+
+  .ex-type p {
+    margin: 0;
+    font-size: var(--step--1);
+  }
+
+  .ex-type__rank {
+    position: absolute;
+    top: 0.6rem;
+    left: -0.6rem;
+    display: grid;
+    place-items: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    background: var(--c);
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 800;
+  }
+
+  .ex-flat {
+    padding: var(--space-s) var(--space-m);
+    border-radius: var(--radius-m);
+    background: color-mix(in srgb, var(--warn) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--warn) 35%, transparent);
+    font-weight: 600;
+  }
+
+  .ex-flat[hidden] {
+    display: none;
+  }
+
+  /* Results: filters ---------------------------------------------- */
+  .ex-toolbar {
+    display: grid;
+    gap: var(--space-s);
+    padding: var(--space-s) var(--space-m);
+    background: var(--paper-alt);
+    border: var(--border);
+    border-radius: var(--radius-l);
+    margin-bottom: var(--space-s);
+  }
+
+  .ex-filter {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .ex-filter--row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+
+  .ex-filter__label {
+    font-size: var(--step--1);
+    font-weight: 800;
+    color: var(--ink-700);
+  }
+
+  .ex-filter__hint {
+    font-weight: 500;
+    color: var(--ink-500);
+    margin-left: 0.4rem;
+  }
+
+  .ex-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .ex-chip {
+    font: inherit;
+    font-size: var(--step--1);
+    font-weight: 650;
+    padding: 0.3rem 0.8rem;
+    border-radius: var(--radius-pill);
+    border: 2px solid var(--paper-sunk);
+    background: var(--paper);
+    color: var(--ink-900);
+    cursor: pointer;
+    transition: border-color 0.12s ease, background 0.12s ease;
+  }
+
+  .ex-chip:hover {
+    border-color: var(--c, var(--accent));
+  }
+
+  .ex-chip.is-on {
+    border-color: var(--c, var(--accent));
+    background: color-mix(in srgb, var(--c, var(--accent)) 16%, var(--paper));
+  }
+
+  .ex-select {
+    font: inherit;
+    font-size: var(--step--1);
+    padding: 0.3rem 0.6rem;
+    border-radius: var(--radius-s);
+    border: 2px solid var(--paper-sunk);
+    background: var(--paper);
+    color: var(--ink-900);
+  }
+
+  .ex-results-count {
+    margin: 0 0 var(--space-s);
+    font-weight: 700;
+    color: var(--ink-700);
+  }
+
+  /* Results: career cards ----------------------------------------- */
+  .ex-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(21rem, 1fr));
+    gap: var(--space-s);
+  }
+
+  .ex-job {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xs);
+    padding: var(--space-s);
+    background: var(--paper);
+    border: var(--border);
+    border-left: 6px solid var(--c);
+    border-radius: var(--radius-m);
+  }
+
+  .ex-job__top {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .ex-fit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--ink-500);
+  }
+
+  .ex-fit--great {
+    color: var(--good);
+  }
+
+  .ex-fit--good {
+    color: var(--accent);
+  }
+
+  .ex-fit__dots {
+    display: inline-flex;
+    gap: 0.2rem;
+  }
+
+  .ex-fit__dots span {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.25;
+  }
+
+  .ex-fit__dots span.is-on {
+    opacity: 1;
+  }
+
+  .ex-job__head {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+
+  .ex-job__icon {
+    font-size: 1.6rem;
+    line-height: 1;
+  }
+
+  .ex-job__title {
+    margin: 0;
+    font-size: var(--step-1);
+    line-height: 1.2;
+  }
+
+  .ex-job__title a {
+    color: var(--ink-900);
+    text-decoration: none;
+  }
+
+  .ex-job__title a:hover {
+    text-decoration: underline;
+  }
+
+  .ex-job__cat {
+    margin: 0;
+    font-size: var(--step--1);
+    font-weight: 700;
+    color: var(--c);
+  }
+
+  .ex-job__what,
+  .ex-job__because,
+  .ex-job__path,
+  .ex-job__related {
+    margin: 0;
+    font-size: var(--step--1);
+    color: var(--ink-700);
+  }
+
+  .ex-job__because {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .ex-tag {
+    display: inline-flex;
+    gap: 0.25rem;
+    padding: 0.1rem 0.55rem;
+    border-radius: var(--radius-pill);
+    font-weight: 700;
+    color: var(--ink-900);
+    background: color-mix(in srgb, var(--c) 18%, var(--paper));
+    border: 1px solid color-mix(in srgb, var(--c) 45%, transparent);
+  }
+
+  .ex-job__stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-2xs);
+    margin: var(--space-2xs) 0 0;
+    padding-top: var(--space-2xs);
+    border-top: 1px dashed var(--paper-sunk);
+  }
+
+  .ex-job__stats dt {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-500);
+  }
+
+  .ex-job__stats dd {
+    margin: 0.1rem 0 0;
+  }
+
+  .ex-job__big {
+    font-size: var(--step-1);
+    font-weight: 800;
+    line-height: 1.1;
+  }
+
+  .ex-job__big span {
+    font-size: var(--step--1);
+    font-weight: 600;
+    color: var(--ink-500);
+  }
+
+  .ex-job__big.is-good {
+    color: var(--good);
+  }
+
+  .ex-job__big.is-down {
+    color: #b91c1c;
+  }
+
+  .ex-job__sub {
+    font-size: 0.72rem;
+    color: var(--ink-500);
+  }
+
+  .ex-job__link {
+    margin: auto 0 0;
+    padding-top: var(--space-2xs);
+    font-size: var(--step--1);
+    font-weight: 700;
+  }
+
+  @media (max-width: 480px) {
+    .ex-cards {
+      grid-template-columns: 1fr;
+    }
+    .ex-job__stats {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .ex-more {
+    text-align: center;
+    margin: var(--space-m) 0 0;
+  }
+
+  #ex-more[hidden] {
+    display: none;
+  }
+
+  .ex-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-top: var(--space-l);
+  }
+
+  .ex-copied {
+    font-weight: 700;
+    color: var(--good);
+  }
+
+  .ex-method {
+    margin-top: var(--space-l);
+    padding: var(--space-s) var(--space-m);
+    border-left: 4px solid var(--paper-sunk);
+  }
+
+  .ex-method h3 {
+    margin: 0 0 0.25rem;
+    font-size: var(--step-0);
+  }
+
+  .ex-method p {
+    margin: 0.25rem 0 0;
+    font-size: var(--step--1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ex-activity.is-in {
+      animation: none;
+    }
+    .ex-progress span,
+    .ex-scale__btn {
+      transition: none;
+    }
+  }
+
+  @media print {
+    .site-header,
+    .site-footer,
+    .hero,
+    .ex-toolbar,
+    .ex-actions,
+    .ex-more {
+      display: none !important;
+    }
+    .ex-job {
+      break-inside: avoid;
+    }
+  }
+</style>

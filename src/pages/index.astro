@@ -4,7 +4,6 @@ import Base from '../layouts/Base.astro';
 import StateCard from '../components/StateCard.astro';
 import StatTile from '../components/StatTile.astro';
 import Bars from '../components/Bars.astro';
-import MyMatches from '../components/MyMatches.astro';
 import HeroScience from '../components/HeroScience.astro';
 import { STATES } from '../data/states';
 import {
@@ -72,9 +71,9 @@ const description =
           <div class="hero__actions">
             <a class="btn btn--primary" href={withBase("/nj")}>{t('home.ctaNj', lang)}</a>
             <a class="btn btn--ghost" href={withBase("/compare")}>{t('home.ctaCompare', lang)}</a>
-            <button type="button" class="btn btn--sun" data-open-finder>
+            <a class="btn btn--sun" href={withBase("/explore")}>
               {t('home.ctaFinder', lang)}
-            </button>
+            </a>
           </div>
           {updated && <p class="stamp">{t('home.updated', lang)} {updated.slice(0, 10)}</p>}
           {lang === 'es' && <p class="stamp">{t('es.notice', lang)}</p>}
@@ -116,8 +115,6 @@ const description =
       </section>
     )
   }
-
-  <MyMatches lang={lang} />
 
   <section class="section">
     <div class="wrap">
