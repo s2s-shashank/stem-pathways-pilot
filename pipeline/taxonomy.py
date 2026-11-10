@@ -1,5 +1,8 @@
 """What counts as STEM here, and how we group it.
 
+Groups are the BLS / U.S. Department of Labor SOC 2018 major groups, derived
+from the first two digits of the SOC code, so this file only lists codes.
+
 The Bureau of Labor Statistics defines STEM occupations as the computer and
 mathematical, architecture and engineering, and life and physical science
 groups, plus related managers, teachers and salespeople. We start from that
@@ -49,19 +52,17 @@ CATEGORIES: dict[str, dict[str, str]] = _load_categories()
 CATEGORY_IDS: set[str] = set(CATEGORIES)
 
 # ---------------------------------------------------------------------------
-# Detailed SOC code -> category
+# Detailed SOC code -> STEM list
 # ---------------------------------------------------------------------------
-CODES: dict[str, str] = {}
+STEM_CODES: set[str] = set()
 
 
-def _add(category: str, *codes: str) -> None:
-    for code in codes:
-        CODES[code] = category
+def _add(*codes: str) -> None:
+    STEM_CODES.update(codes)
 
 
 # Computer and information systems (15-12xx)
 _add(
-    "computing",
     "15-1211",  # Computer Systems Analysts
     "15-1212",  # Information Security Analysts
     "15-1221",  # Computer and Information Research Scientists
@@ -82,7 +83,6 @@ _add(
 
 # Math and data (15-20xx)
 _add(
-    "data",
     "15-2011",  # Actuaries
     "15-2021",  # Mathematicians
     "15-2031",  # Operations Research Analysts
@@ -94,7 +94,6 @@ _add(
 
 # Engineering (17-2xxx) plus the technicians and drafters (17-3xxx)
 _add(
-    "engineering",
     "17-2011",  # Aerospace Engineers
     "17-2031",  # Bioengineers and Biomedical Engineers
     "17-2041",  # Chemical Engineers
@@ -125,7 +124,6 @@ _add(
 
 # Architecture and land surveying (17-10xx)
 _add(
-    "architecture",
     "17-1011",  # Architects
     "17-1012",  # Landscape Architects
     "17-1021",  # Cartographers and Photogrammetrists
@@ -135,7 +133,6 @@ _add(
 
 # Life, physical and environmental science (19-xxxx)
 _add(
-    "science",
     "19-1012",  # Food Scientists and Technologists
     "19-1013",  # Soil and Plant Scientists
     "19-1021",  # Biochemists and Biophysicists
@@ -169,7 +166,6 @@ _add(
 
 # Health and medicine (29-xxxx)
 _add(
-    "health",
     "29-1011",  # Chiropractors
     "29-1021",  # Dentists
     "29-1029",  # Dentists, All Other Specialties
@@ -240,7 +236,6 @@ _add(
 
 # Skilled trades and technical work (49-xxxx and 51-xxxx)
 _add(
-    "trades",
     "49-2021",  # Radio, Cellular, and Tower Equipment Installers
     "49-2022",  # Telecommunications Equipment Installers and Repairers
     "49-2091",  # Avionics Technicians
@@ -270,25 +265,25 @@ _add(
 
 
 def category_for_code(code: str) -> str | None:
-    """Return the category id for a detailed SOC code, or None."""
-    if code in CODES:
-        return CODES[code]
-    # Broad-ish SOC codes such as "15-1252" with an "00" tail still work.
-    return CODES.get(code.strip())
+    """Return the SOC major-group id ("15-0000") for a STEM SOC code, or None."""
+    code = code.strip()
+    if code not in STEM_CODES:
+        return None
+    return f"{code[:2]}-0000"
 
 
 def _check_categories() -> None:
-    """Fail loudly if a code points at a category the site does not know."""
-    unknown = {c for c in CODES.values()} - CATEGORY_IDS
+    """Fail loudly if a code lands in a group the site does not know."""
+    unknown = {category_for_code(c) for c in STEM_CODES} - CATEGORY_IDS
     if unknown:
         raise RuntimeError(
-            "Unknown STEM categories used by the occupation codes: "
+            "Unknown SOC major groups used by the occupation codes: "
             f"{sorted(unknown)}. Add them to src/data/categories.json."
         )
 
 
 # ---------------------------------------------------------------------------
-# Job title keywords, used to sort live postings into categories.
+# Job title keywords, used to sort live postings into SOC major groups.
 #
 # Precision matters more than recall here: a wrong "STEM" poster inflates the
 # headline number, and a student counting job ads deserves a number we can
@@ -296,10 +291,13 @@ def _check_categories() -> None:
 # "maintenance", "operator" or "analyst" - and each entry has to look like
 # the occupation titles in the BLS data above.
 #
-# Checked in order, so the most specific words come first.
+# Checked in order, so the most specific words come first. A group id may
+# appear in several rows. Management (11-0000) and office support (43-0000)
+# have no title keywords: managers and statistical assistants cannot be
+# told apart by title without inflating the counts.
 # ---------------------------------------------------------------------------
 TITLE_KEYWORDS: list[tuple[str, tuple[str, ...]]] = [
-    ("computing", (
+    ("15-0000", (
         "software", "programmer", "web developer", "web design", "web designer",
         "systems analyst", "system analyst", "computer", "cyber", "information security",
         "network engineer", "network administrator", "network systems",
@@ -308,12 +306,13 @@ TITLE_KEYWORDS: list[tuple[str, tuple[str, ...]]] = [
         "quality assurance", "data engineer", "computer systems",
         "mainframe", "sap", "erp",
     )),
-    ("data", (
+    ("15-0000", (
         "data scientist", "statistician", "actuary", "mathematic", "operations research",
         "business intelligence", "data analyst", "research analyst", "quantitative analyst",
-        "gis", "geospatial",
     )),
-    ("engineering", (
+    # Cartography and mapping are SOC 17-1021 / 17-3031.
+    ("17-0000", ("gis", "geospatial")),
+    ("17-0000", (
         "engineer", "aerospace engineer", "biomedical engineer", "chemical engineer",
         "civil engineer", "computer engineer", "electrical engineer", "electronic engineer",
         "environmental engineer", "industrial engineer", "materials engineer",
@@ -322,19 +321,21 @@ TITLE_KEYWORDS: list[tuple[str, tuple[str, ...]]] = [
         "robotics", "aerospace", "engineering technician", "engineering technologist",
         "draftsman", "drafter", "architectural", "biomedical",
     )),
-    ("architecture", (
-        "architect", "surveyor", "cartograph", "landscape architect", "urban planner",
+    ("17-0000", (
+        "architect", "surveyor", "cartograph", "landscape architect",
     )),
-    ("science", (
+    # Urban and regional planners are SOC 19-3051.
+    ("19-0000", ("urban planner",)),
+    ("19-0000", (
         "scientist", "research scientist", "chemist", "physicist", "biologist", "biotech",
         "microbiolog", "biochem", "geneticist", "genomic", "lab scientist",
         "laboratory scientist", "environmental scientist", "geologist", "hydrolog",
-        "toxicolog", "pharmacolog", "veterinar", "food scientist", "medical scientist",
+        "toxicolog", "pharmacolog", "food scientist", "medical scientist",
         "forensic scientist", "wildlife biolog", "wildlife technician", "ecologist",
         "epidemiolog", "wildlife", "natural resource", "biologist", "aquatic",
         "laboratory technolog", "research scientist", "meteorolog", "horticultur",
     )),
-    ("health", (
+    ("29-0000", (
         "registered nurse", "nurse", "pharmac", "physician", "dentist",
         "physical therapist", "occupational therapist", "speech-language pathologist",
         "respiratory therapist", "radiologic technolog", "sonograph",
@@ -343,14 +344,19 @@ TITLE_KEYWORDS: list[tuple[str, tuple[str, ...]]] = [
         "optometr", "audiolog", "dental hygien", "dental assistant",
         "surgical technolog", "medical assistant", "veterinary technolog",
         "health information technolog", "chiropract", "podiatr", "optician",
-        "radiography", "sonography",
+        "radiography", "sonography", "veterinar",
     )),
-    ("trades", (
-        "machinist", "welder", "welding", "hvac", "heating and air conditioning",
-        "avionics", "industrial machinery", "instrument calibration", "calibration technolog",
-        "medical equipment repair", "electronic equipment", "telecommunications line",
-        "power plant operator", "water and wastewater treatment", "tool and die",
-        "power distribution", "stationary engineer", "electrical power",
+    ("49-0000", (
+        "hvac", "heating and air conditioning", "avionics", "industrial machinery",
+        "instrument calibration", "medical equipment repair", "electronic equipment",
+        "telecommunications line", "electrical power",
+    )),
+    # Calibration technologists are SOC 17-3028.
+    ("17-0000", ("calibration technolog",)),
+    ("51-0000", (
+        "machinist", "welder", "welding", "power plant operator",
+        "water and wastewater treatment", "tool and die", "power distribution",
+        "stationary engineer",
     )),
 ]
 

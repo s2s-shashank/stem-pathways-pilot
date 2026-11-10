@@ -19,18 +19,24 @@ import {
 /* ------------------------------------------------------------------ */
 
 /**
- * Which tags each category starts with. Every occupation gets these even
- * when no keyword matches, so nothing is ever left untagged.
+ * Which tags each occupation starts with, matched by SOC code prefix (first
+ * match wins). Every occupation gets these even when no keyword matches, so
+ * nothing is ever left untagged. Specific codes come before their group.
  */
-const CATEGORY_TAGS: Record<string, string[]> = {
-  computing: ['code', 'numbers'],
-  data: ['numbers', 'code'],
-  engineering: ['build', 'lab'],
-  architecture: ['build', 'art'],
-  science: ['lab', 'nature'],
-  health: ['people'],
-  trades: ['hands', 'build'],
-};
+const BASE_TAGS: [prefix: string, tags: string[]][] = [
+  ['11-3021', ['code', 'numbers']],
+  ['11-9041', ['build', 'lab']],
+  ['11-9121', ['lab', 'nature']],
+  ['43-9111', ['numbers', 'code']],
+  ['15-', ['code', 'numbers']],
+  ['17-1', ['build', 'art']],
+  ['17-3031', ['build', 'art']],
+  ['17-', ['build', 'lab']],
+  ['19-', ['lab', 'nature']],
+  ['29-', ['people']],
+  ['49-', ['hands', 'build']],
+  ['51-', ['hands', 'build']],
+];
 
 /**
  * Keyword rules. The order matters: "Computer Hardware Engineers" should
@@ -82,8 +88,8 @@ const NOT_BUILDING = /software|database|network|computer/i;
 /**
  * Work out the interest tags for one occupation.
  */
-function occupationTags(title: string, category: string): string[] {
-  const tags = new Set<string>(CATEGORY_TAGS[category] ?? []);
+function occupationTags(soc: string, title: string): string[] {
+  const tags = new Set<string>(BASE_TAGS.find(([prefix]) => soc.startsWith(prefix))?.[1] ?? []);
   const building = !NOT_BUILDING.test(title);
 
   for (const [pattern, tag] of KEYWORD_RULES) {
@@ -135,7 +141,7 @@ export function buildFinderPayload(): {
           category: o.category,
           blurb: o.blurb ?? CATEGORY_MAP[o.category]?.blurb ?? '',
           education: o.education ?? '',
-          tags: occupationTags(o.title, o.category),
+          tags: occupationTags(o.soc, o.title),
           states: {},
         };
         bySoc.set(o.soc, entry);

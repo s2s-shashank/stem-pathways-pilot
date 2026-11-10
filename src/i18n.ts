@@ -87,10 +87,10 @@ const en = {
   'home.pick.h2': 'Where are the STEM jobs?',
   'home.pick.lede':
     'Every number here comes straight from a government agency, and each one is stamped with the date it was collected. Pick the state you live in.',
-  'home.seven.eyebrow': 'The seven kinds of STEM work',
-  'home.seven.h2': 'STEM is not one thing',
-  'home.seven.lede':
-    'A civil engineer and a cybersecurity analyst both count as STEM, and they do very different work. Here is how we split them up.',
+  'home.groups.eyebrow': 'Eight kinds of STEM work',
+  'home.groups.h2': 'STEM is not one thing',
+  'home.groups.lede':
+    'A civil engineer and a cybersecurity analyst both count as STEM, and they do very different work. We group jobs the way the U.S. Department of Labor does, using the official occupation groups from its Bureau of Labor Statistics.',
   'home.how.eyebrow': 'How this site works',
   'home.how.h2': 'Where do the numbers come from?',
   'home.how.lede':
@@ -142,7 +142,7 @@ const en = {
   'sp.fields.eyebrow': 'What kinds of STEM work?',
   'sp.fields.h2': 'Where people work',
   'sp.fields.lede':
-    'This is every person in {state} working in a STEM job, split into the seven fields we use.',
+    'This is every person in {state} working in a STEM job, split into the U.S. Department of Labor occupation groups we use.',
   'sp.fields.label': 'People in STEM jobs in {state}, by field',
   'sp.private.eyebrow': "Who's hiring right now",
   'sp.private.h2': 'Private-sector STEM jobs in {state}',
@@ -573,10 +573,10 @@ const es: Record<I18nKey, string> = {
   'home.pick.h2': '¿Dónde están los empleos STEM?',
   'home.pick.lede':
     'Cada cifra aquí proviene directamente de una agencia gubernamental, y cada una está marcada con la fecha en que se recopiló. Elige el estado donde vives.',
-  'home.seven.eyebrow': 'Los siete tipos de trabajo STEM',
-  'home.seven.h2': 'STEM no es una sola cosa',
-  'home.seven.lede':
-    'Un ingeniero civil y una analista de ciberseguridad cuentan como STEM, y hacen trabajos muy diferentes. Así los dividimos nosotros.',
+  'home.groups.eyebrow': 'Los ocho tipos de trabajo STEM',
+  'home.groups.h2': 'STEM no es una sola cosa',
+  'home.groups.lede':
+    'Un ingeniero civil y una analista de ciberseguridad cuentan como STEM, y hacen trabajos muy diferentes. Agrupamos los empleos como lo hace el Departamento del Trabajo de EE. UU., con los grupos oficiales de ocupaciones de su Oficina de Estadísticas Laborales.',
   'home.how.eyebrow': 'Cómo funciona este sitio',
   'home.how.h2': '¿De dónde vienen los números?',
   'home.how.lede':
@@ -626,7 +626,7 @@ const es: Record<I18nKey, string> = {
   'sp.fields.eyebrow': '¿Qué tipos de trabajo STEM?',
   'sp.fields.h2': 'Dónde trabaja la gente',
   'sp.fields.lede':
-    'Esta es toda la gente de {state} que trabaja en un empleo STEM, dividida en los siete campos que usamos.',
+    'Esta es toda la gente de {state} que trabaja en un empleo STEM, dividida en los grupos de ocupaciones del Departamento del Trabajo de EE. UU. que usamos.',
   'sp.fields.label': 'Personas en empleos STEM en {state}, por campo',
   'sp.private.eyebrow': 'Quién está contratando ahora',
   'sp.private.h2': 'Empleos STEM del sector privado en {state}',
@@ -1030,22 +1030,24 @@ export function jobTitle(title: string, lang: Lang = 'en'): string {
 
 /** Spanish category labels (categories.json is shared with the data pipeline). */
 export const CATEGORY_LABELS_ES: Record<string, string> = {
-  computing: 'Computación y Software',
-  data: 'Datos y Matemáticas',
-  engineering: 'Ingeniería',
-  architecture: 'Arquitectura y Topografía',
-  science: 'Ciencia e Investigación',
-  health: 'Salud y Medicina',
-  trades: 'Oficios Especializados y Técnicos',
+  '11-0000': 'Gerencia',
+  '15-0000': 'Informática y Matemáticas',
+  '17-0000': 'Arquitectura e Ingeniería',
+  '19-0000': 'Ciencias de la Vida, Físicas y Sociales',
+  '29-0000': 'Profesionales y Técnicos de la Salud',
+  '43-0000': 'Apoyo Administrativo y de Oficina',
+  '49-0000': 'Instalación, Mantenimiento y Reparación',
+  '51-0000': 'Producción',
 };
 
-/** Spanish blurbs for the seven categories on the home page. */
+/** Spanish blurbs for the eight groups on the home page. */
 export const CATEGORY_BLURBS_ES: Record<string, string> = {
-  computing: 'Creación de software, sitios web, redes y ciberseguridad.',
-  data: 'Encontrar patrones en los números y darles sentido.',
-  engineering: 'Diseñar las máquinas, los sistemas y las estructuras que usamos.',
-  architecture: 'Diseñar edificios, mapas y los espacios donde vivimos.',
-  science: 'Estudiar el mundo físico, los seres vivos y el medio ambiente.',
-  health: 'Cuidar a las personas y la tecnología que las mantiene sanas.',
-  trades: 'Instalar, reparar y operar el equipo que mantiene todo en marcha.',
+  '11-0000': 'Dirigir los equipos y proyectos detrás del trabajo de computación, ingeniería y ciencia.',
+  '15-0000': 'Crear software, redes y sistemas de seguridad, y encontrar patrones en los números.',
+  '17-0000': 'Diseñar las máquinas, los sistemas, los edificios y los mapas que usamos.',
+  '19-0000': 'Estudiar el mundo físico, los seres vivos y el medio ambiente.',
+  '29-0000': 'Cuidar a las personas y la tecnología que las mantiene sanas.',
+  '43-0000': 'Reunir y revisar los números de los que dependen los analistas.',
+  '49-0000': 'Instalar y reparar el equipo que mantiene todo en marcha.',
+  '51-0000': 'Fabricar piezas y operar las plantas y sistemas que nos dan energía.',
 };

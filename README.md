@@ -12,7 +12,7 @@ no server, no database and no tracking: every page is a static HTML file.
 ```
 pipeline/          Python data pipeline (standard library only)
   build_data.py    Runs every source, writes src/data/generated/*.json
-  taxonomy.py      Which occupations count as STEM, and how they are grouped
+  taxonomy.py      Which occupations count as STEM (grouped by SOC major group)
   xlsx.py          Minimal .xlsx reader (BLS publishes spreadsheets)
   htmltable.py     Minimal HTML table reader (state job boards publish tables)
   fetcher.py       HTTP with retries and a contact user-agent
@@ -102,6 +102,11 @@ occupations, plus related managers) and add the technical, health and
 skilled-trade occupations that students usually think of as STEM careers.
 Every occupation code is listed in `pipeline/taxonomy.py`, so the rule set is
 easy to read and easy to change.
+
+Careers are grouped by the U.S. Department of Labor's SOC 2018 major groups
+(for example `15-0000` Computer and Mathematical). The group comes from the
+first two digits of the SOC code, so `taxonomy.py` lists codes only. The
+group names, colours and icons live in `src/data/categories.json`.
 
 ## The Career Finder
 

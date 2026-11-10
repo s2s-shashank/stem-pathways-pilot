@@ -13,7 +13,7 @@ from datetime import date
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from pipeline import build_data  # noqa: E402
+from pipeline import build_data, taxonomy  # noqa: E402
 
 TODAY = date(2026, 10, 21)
 
@@ -43,7 +43,7 @@ class WorkingSource:
                     "employer": "Acme",
                     "location": "Newark, NJ",
                     "url": "https://example.test/1",
-                    "category": "computing",
+                    "category": "15-0000",
                     "posted": "2026-10-20",
                 },
                 {
@@ -51,7 +51,7 @@ class WorkingSource:
                     "employer": "Town",
                     "location": "Trenton, NJ",
                     "url": "https://example.test/2",
-                    "category": "engineering",
+                    "category": "17-0000",
                     "posted": "2026-10-19",
                 },
             ],
@@ -62,14 +62,14 @@ class WorkingSource:
 PREVIOUS = {
     "live": {
         "total": 5,
-        "byCategory": {"computing": 3, "engineering": 2},
+        "byCategory": {"15-0000": 3, "17-0000": 2},
         "postings": [
             {
                 "title": "Old Engineer",
                 "employer": "Town",
                 "location": "Trenton, NJ",
                 "url": "https://example.test/old",
-                "category": "engineering",
+                "category": "17-0000",
                 "posted": "2026-01-02",
                 "source": "Test Board",
             }
@@ -80,7 +80,7 @@ PREVIOUS = {
                 "count": 5,
                 "url": "https://example.test",
                 "kind": "postings",
-                "byCategory": {"computing": 3, "engineering": 2},
+                "byCategory": {"15-0000": 3, "17-0000": 2},
             }
         ],
         "private": {"occupationCounts": {"15-1252": 10}, "total": 10},
@@ -104,7 +104,7 @@ class CollectLive(unittest.TestCase):
         postings, rows, by_category, private, total = self.collect()
         self.assertEqual(rows[0]["count"], 5)
         self.assertEqual(total, 5)
-        self.assertEqual(by_category, {"computing": 3, "engineering": 2})
+        self.assertEqual(by_category, {"15-0000": 3, "17-0000": 2})
         self.assertEqual(len(postings), 1)
         self.assertEqual(postings[0]["title"], "Old Engineer")
 
@@ -123,12 +123,27 @@ class CollectLive(unittest.TestCase):
         postings, rows, by_category, _, total = self.collect()
         self.assertEqual(total, 2)
         self.assertEqual(rows[0]["count"], 2)
-        self.assertEqual(by_category, {"computing": 1, "engineering": 1})
+        self.assertEqual(by_category, {"15-0000": 1, "17-0000": 1})
         self.assertEqual(postings[0]["source"], "Test Board")
 
     def test_the_private_numbers_survive_a_broken_source(self):
         _, _, _, private, _ = self.collect()
         self.assertEqual(private["total"], 10)
+
+
+class TaxonomyGroups(unittest.TestCase):
+    def test_codes_land_in_their_soc_major_group(self):
+        self.assertEqual(taxonomy.category_for_code("15-1252"), "15-0000")
+        self.assertEqual(taxonomy.category_for_code("51-4041"), "51-0000")
+        self.assertEqual(taxonomy.category_for_code("11-3021"), "11-0000")
+
+    def test_non_stem_codes_have_no_group(self):
+        self.assertIsNone(taxonomy.category_for_code("41-9022"))
+
+    def test_titles_land_in_their_soc_major_group(self):
+        self.assertEqual(taxonomy.category_for_title("Welder II"), "51-0000")
+        self.assertEqual(taxonomy.category_for_title("HVAC Technician"), "49-0000")
+        self.assertEqual(taxonomy.category_for_title("Urban Planner"), "19-0000")
 
 
 if __name__ == "__main__":

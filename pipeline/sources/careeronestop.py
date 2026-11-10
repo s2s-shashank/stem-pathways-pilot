@@ -192,5 +192,5 @@ if __name__ == "__main__":
     from ..env import load_env
 
     load_env()
-    result = collect("NJ", [{"soc": "15-1252", "category": "computing"}])
+    result = collect("NJ", [{"soc": "15-1252", "category": "15-0000"}])
     print(json.dumps(result, indent=2)[:800])
