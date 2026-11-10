@@ -101,6 +101,9 @@ jobs:
     needs: data
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # SITE_PASSWORD lives in the github-pages environment's secrets, and a job
+    # only sees environment secrets when it names the environment.
+    environment: github-pages
     permissions:
       contents: read
       pages: write

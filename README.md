@@ -170,7 +170,9 @@ Repository secrets:
 - `BLS_CONTACT_EMAIL` - your email, so BLS can reach you
 - `CAREERONESTOP_USER_ID` and `CAREERONESTOP_TOKEN` - from
   <https://api.careeronestop.org/>
-- `SITE_PASSWORD` - the password for the gate page (see below)
+- `SITE_PASSWORD` - the password for the gate page (see below). It can be a
+  repository secret or a secret of the `github-pages` environment; the build
+  job names that environment so it can read the latter.
 
 Set **Settings → Pages → Source** to **GitHub Actions**.
 
