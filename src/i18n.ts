@@ -138,7 +138,7 @@ const en = {
   'sp.read.2a': 'Job postings',
   'sp.read.2b':
     ' - openings advertised right now. A posting is one job. It might be filled next week.',
-  'sp.read.3a': 'Government jobs',
+  'sp.read.3a': 'Official job boards',
   'sp.read.3b':
     ' - a smaller set of openings you can apply for directly, listed on official job boards.',
   'sp.fields.eyebrow': 'What kinds of STEM work?',
@@ -159,11 +159,11 @@ const en = {
   'sp.private.who': 'Who is hiring the most',
   'sp.private.whoLabel': 'Top private-sector STEM employers in {state}',
   'sp.private.none': 'Private-sector posting counts are not available right now.',
-  'sp.gov.eyebrow': 'Government jobs',
+  'sp.gov.eyebrow': 'Open jobs',
   'sp.gov.h2': 'Jobs you can apply for today',
   'sp.gov.lede':
-    'Federal, state and local openings - the kind you can apply for right now on an official website.',
-  'sp.gov.label': 'Open government STEM jobs in {state} by field',
+    "Federal, state and local openings, plus New Jersey's public job board - the kind you can apply for right now on an official website.",
+  'sp.gov.label': 'Open STEM jobs in {state} by field',
   'sp.gov.caption': 'Where the open job counts come from',
   'sp.gov.source': 'Source',
   'sp.gov.count': 'Count',
@@ -205,6 +205,8 @@ const en = {
   'sp.note.usajobs': 'Open federal jobs. You can apply for these today.',
   'sp.note.njcivil':
     'Open New Jersey state and local government exams. Applying puts you on a hiring list.',
+  'sp.note.njJobSource':
+    "New Jersey's public job board for private employers. A job is counted once, even when an employer lists it several times.",
   'sp.note.ny': 'Open New York State government jobs. You can apply for these today.',
   'sp.note.pa':
     'Open Pennsylvania state government jobs. You can apply for these today.',
@@ -222,7 +224,7 @@ const en = {
   'cmp.col': 'What we measured',
   'cmp.row1': 'People already working in STEM jobs',
   'cmp.row2': 'Private-sector job matches (30 days)',
-  'cmp.row3': 'Government jobs open today',
+  'cmp.row3': 'Jobs open today',
   'cmp.row4': 'Typical STEM salary (middle pay)',
   'cmp.row5': 'Data collected on',
   'cmp.note':
@@ -263,6 +265,8 @@ const en = {
   'src.use.cos':
     'Open private-sector STEM jobs, counted for every occupation we track',
   'src.use.nj': 'Open New Jersey state and local government jobs',
+  'src.use.njJobSource':
+    "Open New Jersey private-sector jobs from the state's public job board",
   'src.use.ny': 'Open New York state government jobs',
   'src.use.pa': 'Open Pennsylvania state government jobs',
   'src.note1.h3': 'How we decide what counts as STEM',
@@ -707,7 +711,7 @@ const es: Record<I18nKey, string> = {
   'sp.read.2a': 'Ofertas de empleo',
   'sp.read.2b':
     ': vacantes anunciadas ahora mismo. Una oferta es un puesto. Podría cubrirse la próxima semana.',
-  'sp.read.3a': 'Empleos del gobierno',
+  'sp.read.3a': 'Bolsas de trabajo oficiales',
   'sp.read.3b':
     ': un conjunto más pequeño de vacantes a las que puedes postularte directamente, publicadas en bolsas de trabajo oficiales.',
   'sp.fields.eyebrow': '¿Qué tipos de trabajo STEM?',
@@ -728,11 +732,11 @@ const es: Record<I18nKey, string> = {
   'sp.private.who': 'Quién contrata más',
   'sp.private.whoLabel': 'Principales empleadores STEM del sector privado en {state}',
   'sp.private.none': 'Los conteos de ofertas del sector privado no están disponibles ahora.',
-  'sp.gov.eyebrow': 'Empleos del gobierno',
+  'sp.gov.eyebrow': 'Empleos abiertos',
   'sp.gov.h2': 'Empleos a los que puedes postularte hoy',
   'sp.gov.lede':
-    'Vacantes federales, estatales y locales: del tipo al que puedes postularte ahora mismo en un sitio web oficial.',
-  'sp.gov.label': 'Empleos STEM del gobierno abiertos en {state} por campo',
+    'Vacantes federales, estatales y locales, además de la bolsa de trabajo pública de Nueva Jersey: del tipo al que puedes postularte ahora mismo en un sitio web oficial.',
+  'sp.gov.label': 'Empleos STEM abiertos en {state} por campo',
   'sp.gov.caption': 'De dónde vienen los conteos de empleos abiertos',
   'sp.gov.source': 'Fuente',
   'sp.gov.count': 'Cantidad',
@@ -773,6 +777,8 @@ const es: Record<I18nKey, string> = {
   'sp.note.usajobs': 'Empleos federales abiertos. Puedes postularte hoy.',
   'sp.note.njcivil':
     'Exámenes abiertos del gobierno estatal y local de Nueva Jersey. Postularte te pone en una lista de contratación.',
+  'sp.note.njJobSource':
+    'Bolsa de trabajo pública de Nueva Jersey para empleadores privados. Cada empleo se cuenta una vez, aunque un empleador lo publique varias veces.',
   'sp.note.ny':
     'Empleos abiertos del gobierno del estado de Nueva York. Puedes postularte hoy.',
   'sp.note.pa':
@@ -790,7 +796,7 @@ const es: Record<I18nKey, string> = {
   'cmp.col': 'Lo que medimos',
   'cmp.row1': 'Personas que ya trabajan en empleos STEM',
   'cmp.row2': 'Coincidencias de empleos del sector privado (30 días)',
-  'cmp.row3': 'Empleos del gobierno abiertos hoy',
+  'cmp.row3': 'Empleos abiertos hoy',
   'cmp.row4': 'Salario STEM típico (pago del medio)',
   'cmp.row5': 'Datos recopilados el',
   'cmp.note':
@@ -830,6 +836,8 @@ const es: Record<I18nKey, string> = {
   'src.use.cos':
     'Empleos STEM del sector privado abiertos, contados para cada ocupación que seguimos',
   'src.use.nj': 'Empleos abiertos del gobierno estatal y local de Nueva Jersey',
+  'src.use.njJobSource':
+    'Empleos abiertos del sector privado de Nueva Jersey en la bolsa de trabajo pública del estado',
   'src.use.ny': 'Empleos abiertos del gobierno del estado de Nueva York',
   'src.use.pa': 'Empleos abiertos del gobierno del estado de Pensilvania',
   'src.note1.h3': 'Cómo decidimos qué cuenta como STEM',

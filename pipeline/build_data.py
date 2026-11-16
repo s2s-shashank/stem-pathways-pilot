@@ -25,6 +25,7 @@ from pipeline.sources import (  # noqa: E402
     bls_oews,
     careeronestop,
     nj_csc,
+    nj_jobsource,
     ny_statejobs,
     pa_commonwealth,
     usajobs,
@@ -40,7 +41,12 @@ STATES = {
 }
 
 LIVE_SOURCES = {
-    "nj": [(usajobs, "USAJOBS"), (nj_csc, "NJ Civil Service"), (careeronestop, "CareerOneStop")],
+    "nj": [
+        (usajobs, "USAJOBS"),
+        (nj_csc, "NJ Civil Service"),
+        (nj_jobsource, "NJ JobSource"),
+        (careeronestop, "CareerOneStop"),
+    ],
     "ny": [(usajobs, "USAJOBS"), (ny_statejobs, "StateJobsNY"), (careeronestop, "CareerOneStop")],
     "pa": [(usajobs, "USAJOBS"), (pa_commonwealth, "Commonwealth Careers"), (careeronestop, "CareerOneStop")],
 }
@@ -52,6 +58,7 @@ LIVE_SOURCES = {
 SOURCE_URLS = {
     "USAJOBS": "https://www.usajobs.gov/",
     "NJ Civil Service": "https://info.csc.nj.gov/jobannouncements/",
+    "NJ JobSource": "https://jobsource.nj.gov/",
     "StateJobsNY": "https://statejobs.ny.gov/",
     "Commonwealth Careers": "https://careers.employment.pa.gov/",
     "CareerOneStop": "https://www.careeronestop.org/",

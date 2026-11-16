@@ -17,6 +17,7 @@ pipeline/          Python data pipeline (standard library only)
   htmltable.py     Minimal HTML table reader (state job boards publish tables)
   fetcher.py       HTTP with retries and a contact user-agent
   dates.py         Reads the dates on postings, so old ones can be dropped
+  dedupe.py        Drops the repeats a single board lists more than once
   sources/         One module per data source
 src/               The Astro site
   data/generated/  JSON written by the pipeline - NOT in the repository.
@@ -75,6 +76,7 @@ rather than publishing a site with empty pages.
 | USAJOBS | Open federal STEM jobs | Yes (free) |
 | CareerOneStop | Open private-sector STEM jobs, counted per occupation | Yes (free) |
 | NJ Civil Service | Open NJ state and local announcements | No |
+| NJ JobSource | Open NJ private-sector jobs from the state's public job board | No |
 | StateJobsNY | Open NY State vacancies | No |
 | Commonwealth Careers | Open PA state jobs | No |
 
@@ -93,6 +95,18 @@ postings, and says so where they are shown.
 We use the **v1** endpoint on purpose. The v2 endpoint (which returns full
 postings) needs a separate data request to the National Labor Exchange, so
 depending on it would make the site fragile.
+
+## Duplicate postings
+
+Boards list the same opening more than once - one hospital listed the same
+nursing job 13 times in a single NJ JobSource export. To keep the number
+honest, postings from one board are counted once when their title, employer
+and city/state match; the ZIP code is ignored because one job is often listed
+under several nearby ZIPs. `pipeline/dedupe.py` does this for NJ JobSource.
+
+This is done per board. The same job can still appear on two different boards,
+because they do not share a job id, and the build only keeps a sample of each
+board's postings rather than every row.
 
 ## What counts as STEM here
 

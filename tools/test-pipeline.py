@@ -13,7 +13,8 @@ from datetime import date
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from pipeline import build_data, taxonomy  # noqa: E402
+from pipeline import build_data, dedupe, taxonomy  # noqa: E402
+from pipeline.sources import nj_jobsource  # noqa: E402
 
 TODAY = date(2026, 10, 21)
 
@@ -129,6 +130,56 @@ class CollectLive(unittest.TestCase):
     def test_the_private_numbers_survive_a_broken_source(self):
         _, _, _, private, _ = self.collect()
         self.assertEqual(private["total"], 10)
+
+
+CSV_FIXTURE = '''"Match Strength","Title","Location","Company","Date","Bright Outlook","Green Job","Apprenticeships","Job Bank"
+"3.0","Software Developer","Newark, NJ 07102","Acme Corp","11/01/2026","","","",""
+"3.0","Software Developer","Newark, NJ 07105","Acme Corp","11/02/2026","","","",""
+"2.0","Store Manager","Newark, NJ 07102","Acme Corp","11/01/2026","","","",""
+'''
+
+
+class NjJobSourceCsv(unittest.TestCase):
+    def test_only_stem_titles_are_kept(self):
+        postings = nj_jobsource.parse_csv(CSV_FIXTURE)
+        self.assertEqual(len(postings), 2)
+        self.assertEqual(postings[0]["title"], "Software Developer")
+        self.assertEqual(postings[0]["category"], "15-0000")
+        self.assertEqual(postings[0]["posted"], "11/01/2026")
+
+    def test_the_same_job_listed_twice_is_counted_once(self):
+        postings = dedupe.unique_postings(nj_jobsource.parse_csv(CSV_FIXTURE))
+        self.assertEqual(len(postings), 1)
+
+
+class Dedupe(unittest.TestCase):
+    def posting(self, **overrides):
+        base = {
+            "title": "Software Developer",
+            "employer": "Acme Corp",
+            "location": "Newark, NJ 07102",
+        }
+        base.update(overrides)
+        return base
+
+    def test_case_punctuation_and_zip_do_not_matter(self):
+        rows = [
+            self.posting(),
+            self.posting(
+                title="software  developer",
+                employer="ACME CORP.",
+                location="Newark, NJ 07105",
+            ),
+        ]
+        self.assertEqual(len(dedupe.unique_postings(rows)), 1)
+
+    def test_a_different_employer_or_city_is_a_different_job(self):
+        rows = [
+            self.posting(),
+            self.posting(employer="Other Co"),
+            self.posting(location="Trenton, NJ 08608"),
+        ]
+        self.assertEqual(len(dedupe.unique_postings(rows)), 3)
 
 
 class TaxonomyGroups(unittest.TestCase):
