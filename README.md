@@ -80,6 +80,17 @@ rather than publishing a site with empty pages.
 | StateJobsNY | Open NY State vacancies | No |
 | Commonwealth Careers | Open PA state jobs | No |
 
+### Sources we checked and could not use
+
+These boards were reviewed and left out. Each one is either not a job board
+or its API is restricted to an account this project cannot get for free.
+
+| Source | Why it is not included |
+| --- | --- |
+| BioNJ Talent Network | Runs on Momentive CareerSite (site ID 24097). Its API requires an API user account with the `job-search` scope. That account is issued only to a contracted career center contact, who emails `YMPartnerReps@momentivesoftware.com` to request it. There is no self-serve signup or free tier, and the site is behind Cloudflare, so it is not scraped. |
+| IEEE Job Site | Same Momentive platform (site ID 23764), so the same partner-only API and Cloudflare protection apply. If a free `job-search` key is ever issued, its postings can be added and filtered to NJ, NY and PA. |
+| HINJ | Has no job board. `/jobs` and `/careers` return 404, and the only "HINJ is Hiring!" page is a stale September 2024 post for an internal role. |
+
 ## Private-sector job counts
 
 CareerOneStop accepts an O*NET occupation code in its search, so the pipeline
